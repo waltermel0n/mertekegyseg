@@ -53,7 +53,7 @@ async function pump() {
   while (queue.length) {
     const j = queue.shift();
     if (j.id < minId) continue;
-    try { const pcm = await synth(j.text, j.rate); postMessage({ t: 'pcm', id: j.id, pcm }, [pcm.buffer]); }
+    try { const t0 = performance.now(); const pcm = await synth(j.text, j.rate); postMessage({ t: 'pcm', id: j.id, pcm, ms: performance.now() - t0 }, [pcm.buffer]); }
     catch (e) { postMessage({ t: 'pcm', id: j.id, err: String(e && e.message || e) }); }
   }
   busy = false;
