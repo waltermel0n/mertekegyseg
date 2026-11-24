@@ -808,7 +808,7 @@ function payAdd(v){if(R.done||R.pay.length>=30)return;R.pay.push(v);render();}
 function payDel(i){if(R.done)return;R.pay.splice(i,1);render();}
 function bAdd(p,d){if(R.done)return;R.bld[p]=Math.max(0,Math.min(19,R.bld[p]+d));render();}
 function moneyV(){
-  const M=[['pay','💰','Fizesd ki!','Rakd a pultra a pontos összeget bankjegyekkel és érmékkel.'],['count','🧮','Mennyi pénz van itt?','Számold össze a pénzt!'],['build','🧱','Rakd ki a számot!','Egyesek, tízesek, százasok, ezresek kockákkal.'],['decomp','🃏','Számbontás','Kártyákból rakd össze a számot! Mennyit ér egy számjegy?']];
+  const M=[['pay','💰','Fizesd ki!','Rakd a pultra a pontos összeget bankjegyekkel és érmékkel.'],['count','🧮','Mennyi pénz van itt?','Számold össze a pénzt!'],['build','🧱','Rakd ki a számot!','Egyesek, tízesek, százasok, ezresek kockákkal.'],['decomp','🃏','Számbontás','Kártyákból rakd össze a számot! Mennyit ér egy számjegy?'],['groups','🔟','Hány tízes?','11 tízes az mennyi? Hány tízes van a 340-ben?']];
   return `<div class="top"><button class="icon-btn" onclick="go('home')">←</button><h2>💰 Pénz és helyiérték</h2></div>
   <div class="cats">${M.map(([k,e,n,d])=>`<button class="cat" onclick="newRound('${k}',['p'])" style="border-left:8px solid var(--star)"><span style="font-size:46px;width:70px;text-align:center">${e}</span><div><b>${n}</b><span>${d}</span>${S.best[k]!=null?`<br><span>Legjobb: ${S.best[k]} ⭐</span>`:''}</div></button>`).join('')}</div>
   <div class="cat" style="border-left:8px solid var(--star);margin-top:12px;flex-wrap:wrap"><span style="font-size:46px;width:70px;text-align:center">🎲</span><div style="flex:1"><b>Csere-bere verseny</b><span>Dobj, gyűjts kockákat, és 10-et cserélj 1 nagyobbra! Ki ér előbb a célba: te vagy Robi?</span><div style="display:flex;gap:8px;margin-top:8px"><button class="big-btn" style="margin:0;padding:10px;font-size:17px" onclick="newRace(100)">100-ig</button><button class="big-btn" style="margin:0;padding:10px;font-size:17px" onclick="newRace(1000)">1000-ig</button></div></div></div>
@@ -843,6 +843,31 @@ function genDecomp(){
     help:done=>done?`${pvTable([{l:'',n:N}],N)}<div>A ${PVPL[p]} helyén álló ${dg} <b>${fmt(dg*p)}</b>-t ér.</div>`:''};
 }
 function cPick(p,k){if(R.done)return;R.cards[p]=R.cards[p]===k?0:k;render();}
+/* ---- Hány tízes? ---- */
+const UW={1:'egyes',10:'tízes',100:'százas',1000:'ezres'},UWP={1:'egyesek',10:'tízesek',100:'százasok',1000:'ezresek'};
+function grpBlocks(p,n){const lim={10:30,100:15,1000:12}[p];if(n>lim)return '';const c={1000:0,100:0,10:0,1:0};c[p]=n;return blocksHtml(c);}
+function genGroups(){
+  const L=moneyLimit(),ps=[10,100,1000].filter(p=>p*2<=L);const p=pick(ps.length>1?ps.filter(x=>x<1000||Math.random()<.5):ps);
+  const maxN=Math.min(99,Math.floor(L/p)),n=maxN>=10&&Math.random()<.8?rand(Math.min(11,maxN),maxN):rand(2,Math.min(9,maxN));
+  const t=Math.random(),q=Math.floor(n/10),r=n%10,tw=UW[p],up=UW[p*10];
+  const chainF=done=>q?`${r?`<div>${n} ${tw} = ${q*10} ${tw} + ${r} ${tw}</div>`:''}<div>${q*10} ${tw} = <b>${q} ${up}</b>${done?` = ${fmt(q*10*p)}`:''}</div>${r?`<div>${r} ${tw}${done?` = ${fmt(r*p)}`:` = ${r} × ${p}`}</div>`:''}`:`<div>${n} ${tw} = ${Array(n).fill(p).join(' + ')}</div>`;
+  if(L>=1000&&t>.75){
+    const a=rand(1,Math.min(7,Math.floor(L/100)-3)),b=rand(10,19),c=rand(0,9),ans=a*100+b*10+c;
+    if(ans<=L){const bad=Number(`${a}${b}${c}`);
+      return{kind:'groups',key:`gm${a}-${b}-${c}`,cat:'p',input:'num',ans,say:`${a} százas, ${b} tízes${c?` és ${c} egyes`:''}, az mennyi?`,
+        eq:`<span style="font-size:22px">${a} százas ${b} tízes${c?` ${c} egyes`:''}</span><span>=</span>SLOT`,blk:{1000:0,100:a,10:b,1:c},
+        hint:v=>v===bad?`Ne írd egymás mellé a számokat! A ${b} tízes több, mint 10 tízes: előbb cserélj!`:`Cseréld be: 10 tízes = 1 százas. Mennyi lesz akkor a ${b} tízes?`,
+        help:done=>`<div>${b} tízes = 10 tízes + ${b-10} tízes = 1 százas + ${b-10} tízes</div><div>Így ${a} százas + 1 százas = <b>${a+1} százas</b>, marad ${b-10} tízes${c?` és ${c} egyes`:''}.</div>${done?`<div>${a+1} százas ${b-10} tízes ${c} egyes = <b>${fmt(ans)}</b></div>`:''}`};}
+  }
+  if(t<.45){const ans=n*p;
+    return{kind:'groups',key:`ga${n}-${p}`,cat:'p',input:'num',ans,say:`${n} ${tw}, az mennyi?`,eq:`<span>${n} ${tw}</span><span>=</span>SLOT`,blk:n<=({10:30,100:15,1000:12})[p]?(()=>{const c={1000:0,100:0,10:0,1:0};c[p]=n;return c;})():null,
+      hint:v=>v===n?`Egy ${tw} ennyit ér: ${p}. Itt ${n} darab van belőle, nem 1!`:(v*10===ans||v===ans*10)?`Majdnem! Egy nullával elcsúsztál.`:`Cseréld be: 10 ${tw} = 1 ${up}. Hány ${up} jön ki belőle, és mennyi marad?`,
+      help:done=>chainF(done)+(done?`<div>Összesen: <b>${fmt(ans)}</b></div>`:'<div style="color:var(--soft)">Add össze!</div>')};}
+  const N=n*p,dg=digitsOf(N)[p],zeros=String(p).length-1,s=String(N);
+  return{kind:'groups',key:`gb${n}-${p}`,cat:'p',input:'num',ans:n,say:`Hány ${tw} van a ${N}-ban?`.replace(/(\d+)-ban/,'$1 számban'),eq:`<span>${fmt(N)}</span><span>=</span>SLOT<span>${tw}</span>`,blk:null,
+    hint:v=>v===dg&&dg!==n?`Nem csak a ${UWP[p]} helyén álló ${dg} számít! A nagyobb helyiértékekben is vannak ${UWP[p]}: 1 ${up} = 10 ${tw}.`:v===N?`Nem a számot kérdezem, hanem hogy hány darab ${tw} kell hozzá!`:`Egy ${tw} = ${p}. Hányszor van meg a ${p} ebben: ${fmt(N)}?`,
+    help:done=>`<div>Ügyes trükk: takard le a szám utolsó ${zeros===1?'számjegyét':zeros+' számjegyét'}!</div><div class="bignum" style="font-size:34px">${s.slice(0,-zeros)}<span style="color:#d6d0e0">${s.slice(-zeros)}</span></div>${done?`<div>${fmt(N)} = <b>${n} ${tw}</b>, mert ${n} × ${p} = ${fmt(N)}</div>`:''}`};
+}
 /* ---- Csere-bere verseny ---- */
 let G=null;
 const DIE=n=>`<svg width="46" height="46" viewBox="0 0 46 46"><rect x="2" y="2" width="42" height="42" rx="9" fill="#fff" stroke="#3b3450" stroke-width="2.5"/>${({1:[[23,23]],2:[[13,13],[33,33]],3:[[12,12],[23,23],[34,34]],4:[[13,13],[33,13],[13,33],[33,33]],5:[[12,12],[34,12],[23,23],[12,34],[34,34]],6:[[13,11],[33,11],[13,23],[33,23],[13,35],[33,35]]})[n].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="4.2" fill="#3b3450"/>`).join('')}</svg>`;
@@ -966,7 +991,7 @@ function sayCard(i){say(learnCards(view.cat)[i].say,true);}
 
 /* --- Gyakorlás --- */
 function newRound(act,cats){R={act,cats,n:S.set.len,i:0,score:0,res:[],seen:new Set()};view={s:'quiz'};nextQ();}
-function gen(){const g={conv:genConv,cmp:genCmp,unit:genUnit,ruler:genRuler,pay:genPay,count:genCount,build:genBuild,decomp:genDecomp}[R.act];let q;for(let t=0;t<25;t++){q=g(R.cats);if(!R.seen.has(q.key))break;}R.seen.add(q.key);return q;}
+function gen(){const g={conv:genConv,cmp:genCmp,unit:genUnit,ruler:genRuler,pay:genPay,count:genCount,build:genBuild,decomp:genDecomp,groups:genGroups}[R.act];let q;for(let t=0;t<25;t++){q=g(R.cats);if(!R.seen.has(q.key))break;}R.seen.add(q.key);return q;}
 function nextQ(){if(R.i>=R.n){finish();return;}R.q=gen();R.tries=0;R.done=false;R.inp='';R.fb=null;R.wrong=[];R.pay=[];R.bld={1000:0,100:0,10:0,1:0};R.cards={};render();setTimeout(()=>say(R.q.say),250);}
 function quizV(){
   const q=R.q,C=CATS[q.cat]||{col:'var(--star)'};
@@ -985,6 +1010,7 @@ function quizV(){
   if(q.kind==='cards')body=`<div class="qtext">Rakd ki kártyákból!</div><div class="bignum">${fmt(q.ans)}</div>${stackHtml(R.cards,true)}`;
   if(q.kind==='expand')body=`<div class="qtext">Melyik szám ez?</div><div class="qeq">${q.eq.replace('SLOT',slot)}</div>`;
   if(q.kind==='val')body=`<div class="bignum">${q.num}</div><div class="qtext">${q.q}</div>`;
+  if(q.kind==='groups')body=`<div class="qtext">Mennyi?</div><div class="qeq">${q.eq.replace('SLOT',slot)}</div>${q.blk?blocksHtml(q.blk):''}`;
   if(q.kind==='read')body=`<div class="qtext">Melyik számot raktuk ki?</div>${blocksHtml(q.cnt)}<div class="qeq">${q.eq.replace('SLOT',slot)}</div>`;
   if(q.kind==='cmp')body=`<div class="qtext">Melyik a több?</div><div style="font-size:15px;color:var(--soft)">Koppints arra, amelyik több!</div>`;
   let input='';
@@ -1011,7 +1037,7 @@ function answer(v){
     const pr=pick(PRAISE).replace('!','');R.fb={type:'ok',head:first?`${pr}, jutalmad 1 csillag! ⭐`:pr+'!',msg:(first?'':'Második próbálkozásra sikerült! ')+(q.okMsg?q.okMsg():'')};save();if(first)confetti();say(first?`${pr}, jutalmad 1 csillag!`:`${pr}! Második próbálkozásra sikerült!`);}
   else{R.tries++;if(q.input==='choice'||q.input==='cmp')R.wrong.push(v);
     if(R.tries<2){R.fb={type:'try',head:'Nem baj, próbáld újra! 💪',msg:q.hint(v)};R.inp='';R.anim='shake';say('Próbáld újra! '+q.hint(v));}
-    else{R.done=true;R.res[R.i]=0;const a=q.kind==='pay'||q.kind==='count'?`${fmt(q.ans)} Ft`:['build','read','cards','expand'].includes(q.kind)?fmt(q.ans):q.kind==='conv'||q.kind==='ruler'?`${fmt(q.ans)}${q.kind==='ruler'?' '+q.u:''}`:q.kind==='cmp'?(q.ans==='E'?'Egyformák':q.ans==='L'?q.L.t:q.R.t):q.ans;
+    else{R.done=true;R.res[R.i]=0;const a=q.kind==='pay'||q.kind==='count'?`${fmt(q.ans)} Ft`:['build','read','cards','expand','groups'].includes(q.kind)?fmt(q.ans):q.kind==='conv'||q.kind==='ruler'?`${fmt(q.ans)}${q.kind==='ruler'?' '+q.u:''}`:q.kind==='cmp'?(q.ans==='E'?'Egyformák':q.ans==='L'?q.L.t:q.R.t):q.ans;
       R.fb={type:'show',head:'Nézzük meg együtt! 👀',msg:`A helyes válasz: <b>${a}</b>`};}}
   render();
 }
