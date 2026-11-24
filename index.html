@@ -198,61 +198,41 @@ button{font-family:inherit;font-weight:800;color:inherit;cursor:pointer;border:n
 <div id="app"></div>
 <script>
 "use strict";
-/* Berta – beépített Piper felolvasó (böngészőben fut, hu_HU-berta-medium, 8 bites) */
-const BERTA={state:'off',pct:0,err:'',sess:null,cfg:null,ctx:null,cache:new Map(),token:0,src:null,espeak:null};
-const BERTA_PARTS=[['berta-q8-0.txt',12435088],['berta-q8-1.txt',12435092],['espeak-hu.txt',1198372]];
-function loadScript(src){return new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>no(new Error('script '+src));document.head.appendChild(s);});}
-function b64bytes(str){const bin=atob(str),n=bin.length,out=new Uint8Array(n);for(let i=0;i<n;i++)out[i]=bin.charCodeAt(i);return out;}
-async function fetchText(url,onBytes){
-  let c=null;try{c=await caches.open('berta-v2');const hit=await c.match(url);if(hit){const t=await hit.text();onBytes(t.length);return t;}}catch(e){c=null;}
-  const r=await fetch(url);if(!r.ok)throw new Error('HTTP '+r.status);
-  const rd=r.body.getReader(),dec=new TextDecoder();let t='';for(;;){const {done,value}=await rd.read();if(done)break;t+=dec.decode(value,{stream:true});onBytes(value.length);}
-  t+=dec.decode();try{if(c)await c.put(url,new Response(t));}catch(e){}return t;
-}
+/* Berta – beépített Piper felolvasó (háttérszálon fut: tts/berta-worker.js) */
+const BERTA={state:'off',pct:0,err:'',ctx:null,cache:new Map(),token:0,src:null,w:null,sr:22050,jobs:new Map(),nid:1};
 async function bertaLoad(base='tts/',onProgress=()=>{}){
   if(BERTA.state==='ready'||BERTA.state==='loading')return BERTA.wait;
   BERTA.state='loading';BERTA.pct=0;
-  BERTA.wait=(async()=>{try{
-    if(!window.ort)await loadScript(base+'ort.wasm.min.js');
-    if(!window.createPiperPhonemize)await loadScript(base+'piper_phonemize.js');
-    ort.env.wasm.wasmPaths=base;ort.env.wasm.numThreads=1;
-    BERTA.cfg=await (await fetch(base+'berta.json')).json();
-    const tot=BERTA_PARTS.reduce((a,b)=>a+b[1],0);let got=0;const prog=n=>{got+=n;const p=Math.min(99,Math.round(100*got/tot));if(p!==BERTA.pct){BERTA.pct=p;onProgress(p);}};
-    const txt=[];for(const [f] of BERTA_PARTS)txt.push(await fetchText(base+f,prog));
-    BERTA.espeak=b64bytes(txt[2]).buffer;
-    const model=b64bytes(txt[0]+txt[1]);
-    BERTA.sess=await ort.InferenceSession.create(model.buffer,{executionProviders:['wasm']});
-    BERTA.base=base;BERTA.state='ready';BERTA.pct=100;onProgress(100);
-  }catch(e){BERTA.state='error';BERTA.err=String(e&&e.message||e);console.error(e);onProgress(0);}})();
+  BERTA.wait=new Promise(done=>{try{
+    const w=new Worker(base+'berta-worker.js');BERTA.w=w;
+    w.onmessage=e=>{const m=e.data;
+      if(m.t==='prog'){BERTA.pct=m.p;onProgress(m.p);}
+      else if(m.t==='ready'){BERTA.sr=m.sr;BERTA.state='ready';BERTA.pct=100;onProgress(100);done();}
+      else if(m.t==='err'){BERTA.state='error';BERTA.err=m.e;onProgress(0);done();}
+      else if(m.t==='pcm'){const j=BERTA.jobs.get(m.id);if(j){BERTA.jobs.delete(m.id);m.err?j.no(new Error(m.err)):j.ok(m.pcm);}}};
+    w.onerror=e=>{BERTA.state='error';BERTA.err=(e&&e.message)||'worker';onProgress(0);done();};
+    w.postMessage({t:'load',base:new URL(base,location.href).href});
+  }catch(e){BERTA.state='error';BERTA.err=String(e&&e.message||e);onProgress(0);done();}});
   return BERTA.wait;
 }
-function bertaPhonemes(text){
-  return new Promise((ok,no)=>{let done=false;
-    createPiperPhonemize({print:d=>{if(!done){done=true;try{ok(JSON.parse(d).phoneme_ids);}catch(e){no(e);}}},printErr:m=>{},
-      getPreloadedPackage:()=>BERTA.espeak.slice(0),
-      locateFile:u=>BERTA.base+(u.endsWith('.wasm')?'piper_phonemize.wasm':u)})
-    .then(m=>m.callMain(['-l',BERTA.cfg.espeak.voice,'--input',JSON.stringify([{text}]),'--espeak_data','/espeak-ng-data'])).catch(no);});
-}
-async function bertaSynth(text,rate=1){
+function bertaSynth(text,rate=1){
   const key=rate+'|'+text;if(BERTA.cache.has(key))return BERTA.cache.get(key);
-  const ids=await bertaPhonemes(text),inf=BERTA.cfg.inference;
-  const feeds={input:new ort.Tensor('int64',BigInt64Array.from(ids.map(BigInt)),[1,ids.length]),input_lengths:new ort.Tensor('int64',BigInt64Array.from([BigInt(ids.length)]),[1]),
-    scales:new ort.Tensor('float32',Float32Array.from([inf.noise_scale,inf.length_scale/rate,inf.noise_w]),[3])};
-  const out=await BERTA.sess.run(feeds);const pcm=new Float32Array(out.output.data);
+  const id=BERTA.nid++;const pr=new Promise((ok,no)=>{BERTA.jobs.set(id,{ok,no});BERTA.w.postMessage({t:'synth',id,text,rate});});
+  pr.catch(()=>BERTA.cache.delete(key));
   if(BERTA.cache.size>150)BERTA.cache.delete(BERTA.cache.keys().next().value);
-  BERTA.cache.set(key,pcm);return pcm;
+  BERTA.cache.set(key,pr);return pr;
 }
 function bertaCtx(){if(!BERTA.ctx){const C=window.AudioContext||window.webkitAudioContext;BERTA.ctx=new C();}if(BERTA.ctx.state==='suspended')BERTA.ctx.resume().catch(()=>{});return BERTA.ctx;}
-function bertaStop(){BERTA.token++;try{BERTA.src&&BERTA.src.stop();}catch(e){}BERTA.src=null;}
+function bertaStop(){BERTA.token++;if(BERTA.w){BERTA.w.postMessage({t:'cancel',before:BERTA.nid});for(const [id,j] of BERTA.jobs){j.no(new Error('cancel'));}BERTA.jobs.clear();}try{BERTA.src&&BERTA.src.stop();}catch(e){}BERTA.src=null;}
 async function bertaSay(text,rate=1){
   bertaStop();const tk=BERTA.token,ctx=bertaCtx();
   const parts=[];text.split(/(?<=[.!?…])\s+/).map(s=>s.trim()).filter(Boolean).forEach(p=>{if(p.length>60&&p.includes(', ')){const q=p.split(/(?<=,)\s+/);let cur='';q.forEach(x=>{if((cur+' '+x).length>45&&cur){parts.push(cur);cur=x;}else cur=cur?cur+' '+x:x;});if(cur)parts.push(cur);}else parts.push(p);});
   const jobs=parts.map(()=>null);let next=0;
   const get=i=>jobs[i]||(jobs[i]=bertaSynth(parts[i],rate));
   for(let i=0;i<parts.length;i++){
-    const pcm=await get(i);if(tk!==BERTA.token)return;
+    let pcm;try{pcm=await get(i);}catch(e){if(tk!==BERTA.token)return;throw e;}if(tk!==BERTA.token)return;
     if(i+1<parts.length)get(i+1);
-    const buf=ctx.createBuffer(1,pcm.length,BERTA.cfg.audio.sample_rate);buf.copyToChannel(pcm,0);
+    const buf=ctx.createBuffer(1,pcm.length,BERTA.sr);buf.copyToChannel(pcm,0);
     await new Promise(res=>{const s=ctx.createBufferSource();s.buffer=buf;s.connect(ctx.destination);s.onended=res;BERTA.src=s;s.start();});
     if(tk!==BERTA.token)return;
     await new Promise(r=>setTimeout(r,140));
