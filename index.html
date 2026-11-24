@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#b9a7e6">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Mértékegység-kaland</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf7f2; --card:#fff; --ink:#3b3450; --soft:#8a83a0; --line:#ece6f5;
+  --h:#5b9bd5; --hl:#e3effa; --t:#ef9a4a; --tl:#fdeedd; --u:#3fb0a6; --ul:#ddf3f1; --x:#9b86d9; --xl:#efeafb;
+  --ok:#43a861; --okl:#e3f5e8; --bad:#e2606b; --badl:#fde8ea; --star:#f6b93b;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,sans-serif;font-weight:600}
+button{font-family:inherit;font-weight:800;color:inherit;cursor:pointer;border:none;background:none}
+#app{max-width:540px;margin:0 auto;padding:14px 14px 40px;min-height:100vh}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.top h1{font-size:24px;font-weight:900;margin:0;flex:1;line-height:1.1}
+.top h2{font-size:20px;font-weight:900;margin:0;flex:1}
+.pill{background:#fff;border-radius:99px;padding:6px 12px;font-weight:900;box-shadow:0 2px 0 var(--line);white-space:nowrap}
+.icon-btn{width:42px;height:42px;border-radius:14px;background:#fff;box-shadow:0 2px 0 var(--line);font-size:20px;display:grid;place-items:center;flex:none}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{background:#fff;border-radius:22px;padding:14px 12px;text-align:left;box-shadow:0 4px 0 var(--line);display:flex;flex-direction:column;gap:6px;min-height:140px;transition:transform .1s}
+.tile:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+.tile .em{font-size:34px}
+.tile b{font-size:18px;font-weight:900}
+.tile span{font-size:13px;color:var(--soft);line-height:1.3}
+.tile.wide{grid-column:1/-1;flex-direction:row;align-items:center;min-height:0;gap:12px}
+.tile.wide .pic{width:76px;height:76px;flex:none}
+.hello{background:linear-gradient(135deg,#efeafb,#e3effa);border-radius:22px;padding:14px 16px;margin-bottom:14px;display:flex;gap:10px;align-items:center}
+.hello .pic{width:80px;height:80px;flex:none}
+.hello p{margin:0;font-size:15px;line-height:1.4}
+.cats{display:grid;gap:12px}
+.cat{display:flex;align-items:center;gap:14px;background:#fff;border-radius:22px;padding:12px 16px;box-shadow:0 4px 0 var(--line);text-align:left}
+.cat .pic{width:70px;height:70px;flex:none}
+.cat b{font-size:20px;font-weight:900;display:block}
+.cat span{font-size:14px;color:var(--soft)}
+.cat[disabled]{opacity:.4}
+.qcard{background:#fff;border-radius:24px;padding:16px;box-shadow:0 4px 0 var(--line);text-align:center;position:relative}
+.qcard .pic.big{width:150px;height:150px}
+.qtext{font-size:21px;font-weight:900;margin:6px 0 2px;line-height:1.3;padding:0 40px}
+.qeq{font-size:30px;font-weight:900;margin:10px 0 4px;display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap}
+.slot{display:inline-block;min-width:84px;padding:2px 12px;border-radius:14px;background:var(--xl);border:3px dashed var(--x);color:var(--x)}
+.slot.ok{background:var(--okl);border:3px solid var(--ok);color:var(--ok)}
+.slot.show{border-style:solid}
+.say{position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:12px;background:var(--xl);font-size:20px}
+.progress{display:flex;gap:5px;flex:1}
+.progress i{flex:1;height:10px;border-radius:9px;background:#e7e1f1}
+.progress i.ok{background:var(--ok)}
+.progress i.half{background:var(--star)}
+.progress i.no{background:#d9d3e4}
+.progress i.cur{background:var(--x)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:14px}
+.pad button{background:#fff;border-radius:18px;font-size:28px;padding:12px 0;box-shadow:0 4px 0 var(--line)}
+.pad button:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+.pad .go{background:var(--x);color:#fff;box-shadow:0 4px 0 #7b66bb}
+.pad .del{font-size:24px;color:var(--soft)}
+.choices{display:grid;gap:10px;margin-top:14px}
+.choices.two{grid-template-columns:1fr 1fr}
+.choice{background:#fff;border-radius:18px;font-size:24px;padding:16px 10px;box-shadow:0 4px 0 var(--line);border:3px solid transparent}
+.choice:active{transform:translateY(3px)}
+.choice.bad{background:var(--badl);border-color:var(--bad);color:var(--bad)}
+.choice.ok{background:var(--okl);border-color:var(--ok);color:var(--ok)}
+.choice.eq{grid-column:1/-1;font-size:19px;padding:12px}
+.cmpbox{font-size:34px;padding:26px 6px}
+.fb{margin-top:14px;border-radius:20px;padding:12px 14px;font-size:17px;line-height:1.45}
+.fb.ok{background:var(--okl)}
+.fb.try{background:#fff6dc}
+.fb.show{background:var(--xl)}
+.fb .head{font-weight:900;font-size:20px;margin-bottom:2px}
+.help{margin-top:12px;background:#fff;border-radius:20px;padding:12px;box-shadow:0 3px 0 var(--line);font-size:16px;line-height:1.5;text-align:center}
+.help svg{max-width:100%;height:auto;display:block;margin:6px auto}
+.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0}
+.chips span{background:var(--xl);border-radius:10px;padding:3px 9px;font-weight:900}
+.next{display:block;width:100%;margin-top:14px;background:var(--ok);color:#fff;border-radius:20px;font-size:22px;padding:15px;box-shadow:0 4px 0 #2f8549}
+.next:active{transform:translateY(3px);box-shadow:0 1px 0 #2f8549}
+.big-btn{display:block;width:100%;margin-top:12px;background:var(--x);color:#fff;border-radius:20px;font-size:20px;padding:14px;box-shadow:0 4px 0 #7b66bb}
+.big-btn.ghost{background:#fff;color:var(--ink);box-shadow:0 4px 0 var(--line)}
+.result{text-align:center;padding-top:20px}
+.result .stars{font-size:46px;letter-spacing:4px;margin:10px 0}
+.result h2{font-size:28px;margin:6px 0}
+.result p{font-size:18px;color:var(--soft)}
+/* tanuló kártyák */
+.carousel{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;padding-bottom:8px;scrollbar-width:none}
+.carousel::-webkit-scrollbar{display:none}
+.lcard{flex:0 0 100%;min-width:0;scroll-snap-align:center;background:#fff;border-radius:24px;padding:18px 16px;box-shadow:0 4px 0 var(--line);text-align:center;position:relative}
+.lcard .pic{width:170px;height:170px}
+.lcard .u{font-size:46px;font-weight:900;line-height:1}
+.lcard .n{font-size:20px;color:var(--soft);margin-bottom:8px}
+.lcard p{font-size:18px;line-height:1.45;margin:8px 0}
+.lcard .rel{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:8px}
+.lcard .rel span{background:var(--xl);border-radius:12px;padding:5px 10px;font-weight:900;font-size:17px}
+.navrow{display:flex;gap:10px;align-items:center;margin-top:12px}
+.navrow button{flex:1;background:#fff;border-radius:16px;padding:12px;font-size:18px;box-shadow:0 3px 0 var(--line)}
+.dots{display:flex;gap:6px;justify-content:center;margin-top:10px}
+.dots i{width:9px;height:9px;border-radius:9px;background:#ddd5ea}
+.dots i.on{background:var(--x);width:22px}
+/* beállítások */
+.set{background:#fff;border-radius:20px;padding:14px;margin-bottom:12px;box-shadow:0 3px 0 var(--line)}
+.set h3{margin:0 0 8px;font-size:17px;font-weight:900}
+.set p{margin:4px 0 8px;color:var(--soft);font-size:14px;line-height:1.4}
+.ubtns{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px}
+.ubtns button,.seg button{border-radius:12px;padding:8px 12px;font-size:16px;background:#f1edf7;color:var(--soft)}
+.ubtns button.on,.seg button.on{background:var(--x);color:#fff}
+.seg{display:flex;gap:7px;flex-wrap:wrap}
+.tog{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;font-size:16px}
+.tog button{width:54px;height:32px;border-radius:99px;background:#ddd5ea;position:relative;flex:none}
+.tog button::after{content:"";position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .15s}
+.tog button.on{background:var(--ok)}
+.tog button.on::after{left:26px}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:9}
+.confetti i{position:absolute;top:-20px;width:10px;height:14px;border-radius:3px;animation:fall 1.6s ease-in forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+.pop{animation:pop .35s ease}
+@keyframes pop{0%{transform:scale(.8)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
+.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.modal{position:fixed;inset:0;background:rgba(40,30,60,.35);display:grid;place-items:center;z-index:10;padding:20px}
+.modal div{background:#fff;border-radius:22px;padding:18px;max-width:340px;text-align:center}
+.modal p{font-size:18px}
+.modal .row{display:flex;gap:10px}
+.modal .row button{flex:1;border-radius:14px;padding:12px;font-size:17px;background:#f1edf7}
+.modal .row button.dang{background:var(--bad);color:#fff}
+.tpaper{background:#fff;border-radius:22px;padding:14px 8px;box-shadow:0 4px 0 var(--line);background-image:linear-gradient(#eef2f8 1px,transparent 1px),linear-gradient(90deg,#eef2f8 1px,transparent 1px);background-size:18px 18px}
+.tname{display:flex;align-items:center;gap:8px;justify-content:flex-end;font-size:15px;color:var(--soft)}
+.tname input{border:none;border-bottom:2px solid var(--line);background:transparent;font:inherit;font-size:17px;color:var(--ink);width:150px;padding:2px 4px}
+.tsec h3{font-size:19px;font-weight:900;margin:14px 0 4px}
+.tsec .tip{font-size:13px;color:var(--soft);margin:0 0 8px;line-height:1.35}
+.trow{display:flex;flex-wrap:wrap;align-items:flex-end;gap:4px;padding:8px 0;border-bottom:1px dashed var(--line)}
+.trow.ok{background:rgba(67,168,97,.07)}.trow.bad{background:rgba(226,96,107,.07)}
+.tn{font-weight:900;color:var(--soft);width:20px;padding-bottom:6px;font-size:14px}
+.texp{display:flex;flex-wrap:wrap;align-items:flex-end;gap:3px;flex:1;font-size:20px;font-weight:900}
+.qt{display:inline-flex;flex-direction:column;align-items:center}
+.qv{padding:0 2px 4px;white-space:nowrap}
+.scr{display:flex;gap:2px;margin-bottom:2px}
+.scr input{width:38px;font:inherit;font-size:13px;padding:2px 3px;border:1.5px dashed #c9c2d8;border-radius:7px;background:#faf8ff;color:#7a7390;text-align:right}
+.scr select{font:inherit;font-size:12px;border:1.5px dashed #c9c2d8;border-radius:7px;background:#faf8ff;color:#7a7390;padding:1px 0;max-width:46px}
+.op{padding:0 2px 4px}
+.bl{display:inline-flex;align-items:flex-end;gap:3px;padding-bottom:2px}
+.ans{width:62px;font:inherit;font-size:20px;font-weight:900;text-align:center;border:none;border-bottom:3px solid var(--x);background:var(--xl);border-radius:8px 8px 0 0;padding:3px 2px;color:var(--ink)}
+.ans.ok{border-color:var(--ok);background:var(--okl);color:var(--ok)}.ans.bad{border-color:var(--bad);background:var(--badl);color:var(--bad);text-decoration:line-through}
+.bu{padding-bottom:4px}
+.tfix{width:100%;font-size:14.5px;line-height:1.45;padding:2px 0 2px 30px;color:#3b3450}
+.ogrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ohead{font-size:13px;font-weight:900;color:var(--soft);text-align:center;margin-bottom:4px}
+.oitem{display:flex;flex-direction:column;align-items:center;margin-bottom:8px}
+.oitem button{width:100%;background:#fff;border:2.5px solid var(--x);border-radius:14px;padding:9px 4px;font-size:17px;box-shadow:0 3px 0 var(--line)}
+.oitem.used button{opacity:.3;border-style:dashed}
+.oslot{display:flex;align-items:center;gap:6px;width:100%;min-height:44px;margin-bottom:8px;background:#faf8ff;border:2px dashed #c9c2d8;border-radius:14px;padding:6px 8px;font-size:17px;text-align:left}
+.oslot span{color:var(--soft);font-size:14px}
+.oslot.ok{background:var(--okl);border:2px solid var(--ok)}.oslot.bad{background:var(--badl);border:2px solid var(--bad)}
+.ogrid>div:last-child{padding-top:22px}
+.tgrade{display:flex;align-items:center;gap:14px;background:var(--xl);border-radius:16px;padding:10px 14px;margin:8px 0;font-size:17px}
+.jegy{font-family:'Comic Sans MS',cursive;font-size:52px;font-weight:900;color:#e2606b;line-height:1;width:56px;text-align:center;border:3px solid #e2606b;border-radius:50%;height:62px;display:grid;place-items:center}
+.mrow{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;margin:6px 0}
+.pult{min-height:86px;background:#f3ead9;border:3px dashed #d4bf98;border-radius:18px;padding:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;margin-top:10px}
+.pult button{padding:0;line-height:0}
+.pult .empty{color:#a8916a;font-size:15px}
+.kassza{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;justify-items:center}
+.kassza.coins{grid-template-columns:repeat(6,1fr)}
+.kassza button{padding:2px;line-height:0;border-radius:10px}
+.kassza button:active{transform:scale(.92)}
+.amount{font-size:38px;font-weight:900;margin:4px 0}
+.pvt{border-collapse:collapse;margin:8px auto;font-size:15px}
+.pvt th{font-size:12px;padding:3px 6px;border-bottom:2px solid var(--line)}
+.pvt td{padding:4px 8px;font-weight:900;font-size:20px;text-align:center;border-left:1px dashed var(--line)}
+.pvt td:first-child{font-size:13px;color:var(--soft);border-left:none;text-align:right}
+.dien{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;justify-content:center;margin:8px 0}
+.dgrp{display:flex;flex-wrap:wrap;gap:3px;align-items:flex-end;max-width:100%}
+.bctl{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+.bctl>div{background:#fff;border-radius:16px;padding:8px 4px;text-align:center;box-shadow:0 3px 0 var(--line)}
+.bctl b{display:block;font-size:13px}
+.bctl .n{font-size:26px;font-weight:900}
+.bctl button{width:32px;height:34px;border-radius:10px;font-size:22px;background:#f1edf7;margin:2px}
+.okbtn{display:block;width:100%;margin-top:12px;background:var(--x);color:#fff;border-radius:18px;font-size:20px;padding:13px;box-shadow:0 4px 0 #7b66bb}
+.stackwrap{display:flex;justify-content:center;margin:10px 0;min-height:60px;align-items:center}
+.stack{position:relative;height:1.35em;font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:900}
+.scard{position:absolute;right:0;top:0;background:#fff;border:2.5px solid;border-radius:8px;padding:0 6px 0 1px;line-height:1.25;box-shadow:0 2px 4px rgba(0,0,0,.12)}
+.crow{display:flex;align-items:center;gap:4px;margin-top:6px}
+.crow .lab{width:56px;font-size:11px;font-weight:900;text-align:right;flex:none}
+.cgrid{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;flex:1}
+.cgrid button{background:#fff;border:2px solid #e6e0ef;border-radius:7px;padding:6px 0;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;font-weight:900}
+.cgrid button.on{color:#fff}
+.bignum{font-size:42px;font-weight:900;letter-spacing:2px;margin:6px 0}
+.rbot{display:flex;align-items:center;gap:6px;background:#fff;border-radius:14px;padding:8px 12px;box-shadow:0 2px 0 var(--line);font-size:16px}
+.rbar{height:10px;background:#ece6f5;border-radius:9px;overflow:hidden;margin:6px 0}
+.rbar i{display:block;height:100%;border-radius:9px;transition:width .4s}
+.cserebtn{width:auto!important;padding:0 8px;background:var(--star)!important;color:#fff;animation:pop .6s infinite alternate}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+"use strict";
+/* Berta – beépített Piper felolvasó (böngészőben fut, hu_HU-berta-medium, 8 bites) */
+const BERTA={state:'off',pct:0,err:'',sess:null,cfg:null,ctx:null,cache:new Map(),token:0,src:null,espeak:null};
+const BERTA_PARTS=[['berta-q8-0.txt',12435088],['berta-q8-1.txt',12435092],['espeak-hu.txt',1198372]];
+function loadScript(src){return new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>no(new Error('script '+src));document.head.appendChild(s);});}
+function b64bytes(str){const bin=atob(str),n=bin.length,out=new Uint8Array(n);for(let i=0;i<n;i++)out[i]=bin.charCodeAt(i);return out;}
+async function fetchText(url,onBytes){
+  let c=null;try{c=await caches.open('berta-v2');const hit=await c.match(url);if(hit){const t=await hit.text();onBytes(t.length);return t;}}catch(e){c=null;}
+  const r=await fetch(url);if(!r.ok)throw new Error('HTTP '+r.status);
+  const rd=r.body.getReader(),dec=new TextDecoder();let t='';for(;;){const {done,value}=await rd.read();if(done)break;t+=dec.decode(value,{stream:true});onBytes(value.length);}
+  t+=dec.decode();try{if(c)await c.put(url,new Response(t));}catch(e){}return t;
+}
+async function bertaLoad(base='tts/',onProgress=()=>{}){
+  if(BERTA.state==='ready'||BERTA.state==='loading')return BERTA.wait;
+  BERTA.state='loading';BERTA.pct=0;
+  BERTA.wait=(async()=>{try{
+    if(!window.ort)await loadScript(base+'ort.wasm.min.js');
+    if(!window.createPiperPhonemize)await loadScript(base+'piper_phonemize.js');
+    ort.env.wasm.wasmPaths=base;ort.env.wasm.numThreads=1;
+    BERTA.cfg=await (await fetch(base+'berta.json')).json();
+    const tot=BERTA_PARTS.reduce((a,b)=>a+b[1],0);let got=0;const prog=n=>{got+=n;const p=Math.min(99,Math.round(100*got/tot));if(p!==BERTA.pct){BERTA.pct=p;onProgress(p);}};
+    const txt=[];for(const [f] of BERTA_PARTS)txt.push(await fetchText(base+f,prog));
+    BERTA.espeak=b64bytes(txt[2]).buffer;
+    const model=b64bytes(txt[0]+txt[1]);
+    BERTA.sess=await ort.InferenceSession.create(model.buffer,{executionProviders:['wasm']});
+    BERTA.base=base;BERTA.state='ready';BERTA.pct=100;onProgress(100);
+  }catch(e){BERTA.state='error';BERTA.err=String(e&&e.message||e);console.error(e);onProgress(0);}})();
+  return BERTA.wait;
+}
+function bertaPhonemes(text){
+  return new Promise((ok,no)=>{let done=false;
+    createPiperPhonemize({print:d=>{if(!done){done=true;try{ok(JSON.parse(d).phoneme_ids);}catch(e){no(e);}}},printErr:m=>{},
+      getPreloadedPackage:()=>BERTA.espeak.slice(0),
+      locateFile:u=>BERTA.base+(u.endsWith('.wasm')?'piper_phonemize.wasm':u)})
+    .then(m=>m.callMain(['-l',BERTA.cfg.espeak.voice,'--input',JSON.stringify([{text}]),'--espeak_data','/espeak-ng-data'])).catch(no);});
+}
+async function bertaSynth(text,rate=1){
+  const key=rate+'|'+text;if(BERTA.cache.has(key))return BERTA.cache.get(key);
+  const ids=await bertaPhonemes(text),inf=BERTA.cfg.inference;
+  const feeds={input:new ort.Tensor('int64',BigInt64Array.from(ids.map(BigInt)),[1,ids.length]),input_lengths:new ort.Tensor('int64',BigInt64Array.from([BigInt(ids.length)]),[1]),
+    scales:new ort.Tensor('float32',Float32Array.from([inf.noise_scale,inf.length_scale/rate,inf.noise_w]),[3])};
+  const out=await BERTA.sess.run(feeds);const pcm=new Float32Array(out.output.data);
+  if(BERTA.cache.size>150)BERTA.cache.delete(BERTA.cache.keys().next().value);
+  BERTA.cache.set(key,pcm);return pcm;
+}
+function bertaCtx(){if(!BERTA.ctx){const C=window.AudioContext||window.webkitAudioContext;BERTA.ctx=new C();}if(BERTA.ctx.state==='suspended')BERTA.ctx.resume().catch(()=>{});return BERTA.ctx;}
+function bertaStop(){BERTA.token++;try{BERTA.src&&BERTA.src.stop();}catch(e){}BERTA.src=null;}
+async function bertaSay(text,rate=1){
+  bertaStop();const tk=BERTA.token,ctx=bertaCtx();
+  const parts=[];text.split(/(?<=[.!?…])\s+/).map(s=>s.trim()).filter(Boolean).forEach(p=>{if(p.length>60&&p.includes(', ')){const q=p.split(/(?<=,)\s+/);let cur='';q.forEach(x=>{if((cur+' '+x).length>45&&cur){parts.push(cur);cur=x;}else cur=cur?cur+' '+x:x;});if(cur)parts.push(cur);}else parts.push(p);});
+  const jobs=parts.map(()=>null);let next=0;
+  const get=i=>jobs[i]||(jobs[i]=bertaSynth(parts[i],rate));
+  for(let i=0;i<parts.length;i++){
+    const pcm=await get(i);if(tk!==BERTA.token)return;
+    if(i+1<parts.length)get(i+1);
+    const buf=ctx.createBuffer(1,pcm.length,BERTA.cfg.audio.sample_rate);buf.copyToChannel(pcm,0);
+    await new Promise(res=>{const s=ctx.createBufferSource();s.buffer=buf;s.connect(ctx.destination);s.onended=res;BERTA.src=s;s.start();});
+    if(tk!==BERTA.token)return;
+    await new Promise(r=>setTimeout(r,140));
+  }
+}
+
+/* ============ RAJZOK (120×120 viewBox) ============ */
+const spoon = (x,y,rot,liq,sc=1)=>`<g transform="translate(${x} ${y}) rotate(${rot}) scale(${sc})"><rect x="-3.5" y="12" width="7" height="48" rx="3.5" fill="#b9bfcc"/><ellipse rx="14" ry="18" fill="#c9ced9"/><ellipse rx="10.5" ry="14" fill="${liq}"/><ellipse cx="-4" cy="-5" rx="3" ry="5" fill="#fff" opacity=".6"/></g>`;
+const drop = (x,y,s=1)=>`<path transform="translate(${x} ${y}) scale(${s})" d="M0 -12 C 6 -3, 9 2, 9 6 A9 9 0 0 1 -9 6 C -9 2, -6 -3, 0 -12Z" fill="#5fa8e0"/>`;
+const P = {
+ceruza:`<g transform="rotate(-25 60 60)"><rect x="12" y="50" width="14" height="20" rx="5" fill="#f29bb3"/><rect x="24" y="50" width="7" height="20" fill="#b8bcc6"/><rect x="31" y="50" width="57" height="20" fill="#f6c445"/><rect x="31" y="50" width="57" height="7" fill="#fbd96a"/><polygon points="88,50 108,60 88,70" fill="#f3d9b1"/><polygon points="101,56.5 108,60 101,63.5" fill="#444"/></g>`,
+auto:`<rect x="10" y="58" width="100" height="26" rx="10" fill="#e8636b"/><path d="M30 60 L42 36 H78 L92 60Z" fill="#e8636b"/><path d="M40 57 L48 42 H58 V57Z M63 57 V42 H75 L84 57Z" fill="#cfe8f7"/><rect x="100" y="64" width="9" height="7" rx="2" fill="#ffe28a"/><circle cx="34" cy="86" r="11" fill="#3b3450"/><circle cx="34" cy="86" r="4.5" fill="#c9ced9"/><circle cx="86" cy="86" r="11" fill="#3b3450"/><circle cx="86" cy="86" r="4.5" fill="#c9ced9"/>`,
+busz:`<rect x="5" y="30" width="110" height="56" rx="10" fill="#f6c445"/><rect x="5" y="70" width="110" height="6" fill="#e3a92b"/><g fill="#cfe8f7"><rect x="11" y="40" width="15" height="18" rx="3"/><rect x="30" y="40" width="15" height="18" rx="3"/><rect x="49" y="40" width="15" height="18" rx="3"/><rect x="68" y="40" width="15" height="18" rx="3"/><rect x="88" y="40" width="21" height="26" rx="3"/></g><circle cx="27" cy="88" r="10" fill="#3b3450"/><circle cx="27" cy="88" r="4" fill="#c9ced9"/><circle cx="92" cy="88" r="10" fill="#3b3450"/><circle cx="92" cy="88" r="4" fill="#c9ced9"/>`,
+fa:`<rect x="52" y="66" width="16" height="46" rx="3" fill="#9a6b46"/><circle cx="38" cy="62" r="20" fill="#5bb060"/><circle cx="82" cy="62" r="20" fill="#5bb060"/><circle cx="60" cy="46" r="28" fill="#6cc070"/><circle cx="60" cy="26" r="18" fill="#7bcf7f"/><circle cx="48" cy="48" r="4" fill="#e8434b"/><circle cx="72" cy="56" r="4" fill="#e8434b"/>`,
+haz:`<rect x="78" y="26" width="11" height="24" fill="#a55a4a"/><rect x="24" y="56" width="72" height="54" fill="#f7e2c4"/><polygon points="14,62 60,20 106,62" fill="#e8636b"/><rect x="52" y="80" width="17" height="30" rx="2" fill="#9a6b46"/><rect x="31" y="68" width="15" height="15" rx="2" fill="#cfe8f7"/><rect x="74" y="68" width="15" height="15" rx="2" fill="#cfe8f7"/>`,
+ajto:`<rect x="26" y="8" width="68" height="108" rx="3" fill="#e9dccb"/><rect x="32" y="13" width="56" height="103" rx="3" fill="#c98b5a"/><rect x="39" y="20" width="42" height="36" rx="3" fill="#b77a4b"/><rect x="39" y="64" width="42" height="44" rx="3" fill="#b77a4b"/><circle cx="80" cy="62" r="4.5" fill="#f6c445"/>`,
+labda:`<circle cx="60" cy="60" r="46" fill="#fff" stroke="#3b3450" stroke-width="3"/><polygon points="60,43 76,55 70,74 50,74 44,55" fill="#3b3450"/><g stroke="#3b3450" stroke-width="3"><line x1="60" y1="43" x2="60" y2="15"/><line x1="76" y1="55" x2="103" y2="47"/><line x1="70" y1="74" x2="86" y2="97"/><line x1="50" y1="74" x2="34" y2="97"/><line x1="44" y1="55" x2="17" y2="47"/></g>`,
+hangya:`<g stroke="#3b3450" stroke-width="3" fill="none" stroke-linecap="round"><path d="M44 68 L34 82 L26 90"/><path d="M48 70 L50 86 L46 96"/><path d="M52 68 L64 82 L72 92"/><path d="M22 52 Q16 36 6 36"/><path d="M27 51 Q30 34 22 26"/></g><circle cx="26" cy="60" r="10" fill="#3b3450"/><ellipse cx="48" cy="64" rx="11" ry="8" fill="#3b3450"/><ellipse cx="80" cy="62" rx="22" ry="15" fill="#3b3450"/><circle cx="23" cy="57" r="2.5" fill="#fff"/>`,
+katica:`<circle cx="60" cy="34" r="16" fill="#3b3450"/><ellipse cx="60" cy="68" rx="42" ry="36" fill="#e8434b"/><path d="M60 34 V104" stroke="#3b3450" stroke-width="3"/><g fill="#3b3450"><circle cx="40" cy="56" r="8"/><circle cx="80" cy="56" r="8"/><circle cx="38" cy="84" r="7"/><circle cx="82" cy="84" r="7"/><circle cx="60" cy="96" r="5"/></g><circle cx="53" cy="29" r="3" fill="#fff"/><circle cx="67" cy="29" r="3" fill="#fff"/>`,
+zsiraf:`<g fill="#f6c445"><rect x="30" y="86" width="7" height="28" rx="3"/><rect x="42" y="88" width="7" height="26" rx="3"/><rect x="60" y="88" width="7" height="26" rx="3"/><rect x="71" y="86" width="7" height="28" rx="3"/><ellipse cx="54" cy="82" rx="30" ry="15"/><polygon points="66,26 78,26 72,78 58,76"/><ellipse cx="80" cy="22" rx="16" ry="9"/></g><path d="M70 14 V6 M78 13 V5" stroke="#9a6b46" stroke-width="3" stroke-linecap="round"/><g fill="#c98b5a"><circle cx="40" cy="78" r="5"/><circle cx="55" cy="86" r="5"/><circle cx="68" cy="76" r="4"/><circle cx="68" cy="58" r="4"/><circle cx="71" cy="40" r="3.5"/></g><circle cx="83" cy="19" r="2.5" fill="#3b3450"/><path d="M24 76 Q16 84 18 92" stroke="#f6c445" stroke-width="3" fill="none"/>`,
+agy:`<rect x="8" y="38" width="11" height="70" rx="3" fill="#7a5236"/><rect x="101" y="54" width="11" height="54" rx="3" fill="#7a5236"/><rect x="12" y="66" width="96" height="22" rx="4" fill="#9a6b46"/><rect x="18" y="54" width="86" height="16" rx="6" fill="#fff"/><rect x="21" y="45" width="26" height="14" rx="7" fill="#cfe8f7"/><rect x="46" y="50" width="60" height="22" rx="6" fill="#b9a7e6"/>`,
+asztal:`<rect x="10" y="46" width="100" height="11" rx="3" fill="#c98b5a"/><rect x="19" y="57" width="8" height="54" fill="#9a6b46"/><rect x="93" y="57" width="8" height="54" fill="#9a6b46"/><rect x="50" y="28" width="16" height="18" rx="3" fill="#8fc3e8"/><path d="M58 28 Q52 14 58 8 M58 28 Q64 16 70 14" stroke="#6cc070" stroke-width="3" fill="none"/>`,
+varos:`<path d="M26 84 C 50 30, 72 112, 96 52" fill="none" stroke="#cdb48f" stroke-width="10" stroke-linecap="round"/><path d="M26 84 C 50 30, 72 112, 96 52" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="5 6"/><g><rect x="12" y="82" width="26" height="18" fill="#f7e2c4"/><polygon points="9,84 25,70 41,84" fill="#e8636b"/><rect x="84" y="50" width="26" height="18" fill="#f7e2c4"/><polygon points="81,52 97,38 113,52" fill="#5b9bd5"/></g><text x="26" y="114" text-anchor="middle" font-size="10" font-weight="900" fill="#3b3450">Kecskemét</text><text x="96" y="30" text-anchor="middle" font-size="10" font-weight="900" fill="#3b3450">Budapest</text>`,
+bogre:`<path d="M80 50 h7 a13 13 0 0 1 0 28 h-7" fill="none" stroke="#5b9bd5" stroke-width="7"/><rect x="30" y="36" width="52" height="66" rx="8" fill="#5b9bd5"/><circle cx="56" cy="68" r="10" fill="#fff" opacity=".5"/><path d="M44 30 q-5 -8 0 -15 M58 30 q-5 -8 0 -15 M72 30 q-5 -8 0 -15" stroke="#c9ced9" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+ujj:`<rect x="40" y="34" width="40" height="92" rx="20" fill="#f3c9a8"/><rect x="47" y="40" width="26" height="30" rx="11" fill="#fde3e6" stroke="#e6b8a0" stroke-width="2"/><path d="M50 88 q10 4 20 0 M50 96 q10 4 20 0" stroke="#e0ab8a" stroke-width="2" fill="none"/><path d="M47 26 h26 M47 21 v10 M73 21 v10" stroke="#e2606b" stroke-width="3" fill="none"/><text x="60" y="16" text-anchor="middle" font-size="14" font-weight="900" fill="#e2606b">1 cm</text>`,
+mak:`<rect x="8" y="58" width="104" height="36" rx="3" fill="#fbe9a6" stroke="#d9b94a" stroke-width="2"/><g stroke="#8a6d1c" stroke-width="2">${[...Array(11)].map((_,i)=>`<line x1="${10+i*10}" y1="58" x2="${10+i*10}" y2="${i%5?68:76}"/>`).join('')}</g><g fill="#3e4257">${[...Array(10)].map((_,i)=>`<circle cx="${15+i*10}" cy="50" r="4.3"/>`).join('')}</g><text x="10" y="90" font-size="10" font-weight="900" fill="#8a6d1c">0</text><text x="56" y="90" font-size="10" font-weight="900" fill="#8a6d1c">5</text><text x="98" y="90" font-size="10" font-weight="900" fill="#8a6d1c">10</text><text x="60" y="112" text-anchor="middle" font-size="11" font-weight="800" fill="#8a83a0">mákszemek, nagyítva</text><circle cx="30" cy="24" r="14" fill="none" stroke="#9b86d9" stroke-width="4"/><line x1="40" y1="34" x2="52" y2="44" stroke="#9b86d9" stroke-width="5" stroke-linecap="round"/>`,
+gitar:`<g transform="rotate(-32 60 62)"><rect x="56" y="2" width="8" height="62" fill="#7a5236"/><rect x="52" y="-4" width="16" height="12" rx="2" fill="#5a3a26"/><circle cx="60" cy="72" r="17" fill="#e39b4f"/><circle cx="60" cy="96" r="22" fill="#e39b4f"/><circle cx="60" cy="76" r="6.5" fill="#5a3a26"/><rect x="50" y="98" width="20" height="5" rx="2" fill="#5a3a26"/></g>`,
+ut:`<path d="M10 100 C 40 100, 38 62, 66 62 S 98 34, 110 24" stroke="#d8c39f" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M110 24 V4" stroke="#7a5236" stroke-width="3"/><path d="M110 4 l14 5 -14 5z" fill="#e8636b"/><circle cx="14" cy="80" r="5" fill="#3b3450"/><path d="M14 85 v12 M14 97 l-5 9 M14 97 l5 9 M7 90 h14" stroke="#3b3450" stroke-width="3" stroke-linecap="round"/><circle cx="34" cy="28" r="18" fill="#fff" stroke="#9b86d9" stroke-width="4"/><path d="M34 28 V17 M34 28 L42 33" stroke="#3b3450" stroke-width="3" stroke-linecap="round"/><text x="34" y="62" text-anchor="middle" font-size="12" font-weight="900" fill="#9b86d9">15 perc</text>`,
+gemkapocs:`<path d="M44 88 V32 a16 16 0 0 1 32 0 V92 a10 10 0 0 1 -20 0 V42" fill="none" stroke="#8a93a6" stroke-width="6" stroke-linecap="round"/>`,
+dio:`<path d="M60 18 C 92 18, 100 50, 96 72 C 92 96, 74 106, 60 106 C 46 106, 28 96, 24 72 C 20 50, 28 18, 60 18Z" fill="#c99a63"/><path d="M60 18 V106" stroke="#9a6b46" stroke-width="3"/><g stroke="#a87a48" stroke-width="2.5" fill="none" stroke-linecap="round"><path d="M40 38 q8 6 2 14 q-6 8 4 14"/><path d="M80 38 q-8 6 -2 14 q6 8 -4 14"/><path d="M38 78 q8 4 6 14"/><path d="M82 78 q-8 4 -6 14"/></g>`,
+liszt:`<path d="M30 32 L90 32 L97 110 H23 Z" fill="#f4efe6" stroke="#d8cdb8" stroke-width="2"/><path d="M30 32 l6 -12 h48 l6 12z" fill="#e9e1d2" stroke="#d8cdb8" stroke-width="2"/><text x="60" y="66" text-anchor="middle" font-size="13" font-weight="900" fill="#c98b5a">LISZT</text><text x="60" y="92" text-anchor="middle" font-size="20" font-weight="900" fill="#e2606b">1 kg</text>`,
+cseppento:`<rect x="20" y="54" width="38" height="56" rx="9" fill="#8fc3e8"/><rect x="26" y="42" width="26" height="14" fill="#55607a"/><path d="M31 42 V22 a8 8 0 0 1 16 0 V42" fill="#e8636b"/><rect x="26" y="70" width="26" height="20" rx="3" fill="#fff" opacity=".7"/>${drop(84,44,1.1)}${drop(98,72,1)}${drop(80,96,1.1)}`,
+kanal:`${spoon(60,46,0,'#f29bb3',1.6)}`,
+kanal2:`${spoon(36,42,-12,'#8fc3e8',1.15)}${spoon(84,42,12,'#8fc3e8',1.15)}<text x="60" y="50" text-anchor="middle" font-size="22" font-weight="900" fill="#9b86d9">+</text>`,
+csesze:`<ellipse cx="58" cy="98" rx="42" ry="8" fill="#ece3f7"/><path d="M84 58 a10 10 0 0 1 0 22" stroke="#f29bb3" stroke-width="6" fill="none"/><path d="M28 50 h60 l-6 38 a10 10 0 0 1 -10 8 h-28 a10 10 0 0 1 -10 -8z" fill="#f29bb3"/><ellipse cx="58" cy="50" rx="30" ry="6" fill="#a0673e"/>`,
+tej:`<polygon points="72,44 88,36 88,104 72,112" fill="#e5ecf4"/><rect x="28" y="44" width="44" height="68" fill="#fff" stroke="#cbd5e1" stroke-width="2"/><polygon points="28,44 50,20 72,44" fill="#8fc3e8"/><polygon points="50,20 66,12 88,36 72,44" fill="#5b9bd5"/><text x="50" y="72" text-anchor="middle" font-size="14" font-weight="900" fill="#5b9bd5">TEJ</text><text x="50" y="98" text-anchor="middle" font-size="18" font-weight="900" fill="#3b3450">1 l</text>`,
+kad:`<rect x="20" y="92" width="8" height="16" rx="3" fill="#b9bfcc"/><rect x="92" y="92" width="8" height="16" rx="3" fill="#b9bfcc"/><path d="M8 54 H112 V68 a28 28 0 0 1 -28 28 H36 a28 28 0 0 1 -28 -28z" fill="#fff" stroke="#c9ced9" stroke-width="3"/><rect x="12" y="56" width="96" height="9" fill="#8fc3e8"/><path d="M98 54 V26 a8 8 0 0 0 -16 0" stroke="#b9bfcc" stroke-width="5" fill="none"/><g fill="#fff" stroke="#cfe8f7" stroke-width="2"><circle cx="30" cy="50" r="7"/><circle cx="42" cy="44" r="9"/><circle cx="56" cy="50" r="6"/></g>`,
+hordo:`<path d="M34 12 Q20 60 34 108 H86 Q100 60 86 12Z" fill="#c98b5a"/><g stroke="#7a5236" stroke-width="5" fill="none"><path d="M30 32 Q60 38 90 32"/><path d="M30 88 Q60 94 90 88"/></g><g stroke="#a8713f" stroke-width="2"><path d="M50 14 Q44 60 50 106"/><path d="M70 14 Q76 60 70 106"/></g><ellipse cx="60" cy="12" rx="26" ry="5" fill="#a8713f"/>`,
+pohar:`<path d="M32 22 H88 L81 106 H39Z" fill="#eef6fc" stroke="#9cc8e8" stroke-width="3"/><path d="M35 50 H85 L81 103 H39Z" fill="#8fc3e8"/><path d="M42 30 L46 96" stroke="#fff" stroke-width="4" opacity=".7"/>`,
+vodor:`<path d="M26 42 Q60 -6 94 42" stroke="#55607a" stroke-width="3.5" fill="none"/><path d="M26 42 H94 L85 108 H35Z" fill="#6cc070"/><ellipse cx="60" cy="42" rx="34" ry="7" fill="#4a9a4e"/><ellipse cx="60" cy="43" rx="28" ry="4" fill="#8fc3e8"/>`,
+kanna:`<path d="M80 80 L108 44" stroke="#5b9bd5" stroke-width="8" stroke-linecap="round"/><ellipse cx="109" cy="42" rx="7" ry="5" transform="rotate(-50 109 42)" fill="#4180b8"/><path d="M36 52 Q56 18 76 52" stroke="#4180b8" stroke-width="7" fill="none"/><rect x="24" y="50" width="60" height="58" rx="8" fill="#5b9bd5"/><circle cx="54" cy="78" r="9" fill="#fff" opacity=".5"/>`,
+akvarium:`<rect x="10" y="28" width="100" height="74" rx="6" fill="#eef6fc" stroke="#7fb3d5" stroke-width="3"/><rect x="13" y="40" width="94" height="59" fill="#8fc3e8"/><rect x="13" y="90" width="94" height="9" fill="#e9d8a6"/><path d="M28 90 Q22 74 30 62 M34 90 Q40 76 34 64" stroke="#4a9a4e" stroke-width="4" fill="none"/><g fill="#f2a65a"><ellipse cx="66" cy="60" rx="11" ry="7"/><polygon points="55,60 46,54 46,66"/><ellipse cx="88" cy="78" rx="8" ry="5"/><polygon points="96,78 103,73 103,83"/></g><circle cx="70" cy="58" r="1.8" fill="#3b3450"/><g fill="none" stroke="#fff" stroke-width="2"><circle cx="78" cy="48" r="3"/><circle cx="84" cy="44" r="2"/></g>`,
+palack:`<rect x="48" y="6" width="24" height="12" rx="3" fill="#e8636b"/><path d="M49 18 H71 V28 Q86 40 86 56 V104 a9 9 0 0 1 -9 9 H43 a9 9 0 0 1 -9 -9 V56 Q34 40 49 28Z" fill="#cfe8f7" stroke="#7fb3d5" stroke-width="2.5"/><rect x="34" y="62" width="52" height="24" fill="#f6c445"/><path d="M44 36 V100" stroke="#fff" stroke-width="4" opacity=".7"/>`,
+tanyer:`<ellipse cx="60" cy="74" rx="52" ry="20" fill="#fff" stroke="#d6d0e0" stroke-width="2"/><ellipse cx="60" cy="70" rx="36" ry="12" fill="#f2a65a"/><g fill="#e8636b"><circle cx="48" cy="68" r="3.5"/><circle cx="66" cy="72" r="3.5"/></g><g fill="#6cc070"><circle cx="58" cy="66" r="2.5"/><circle cx="74" cy="66" r="2.5"/></g><rect x="84" y="30" width="6" height="42" rx="3" transform="rotate(30 87 51)" fill="#b9bfcc"/>`,
+alma:`<path d="M60 40 C 30 20, 8 50, 22 84 C 32 108, 50 106, 60 100 C 70 106, 88 108, 98 84 C 112 50, 90 20, 60 40Z" fill="#e8434b"/><path d="M60 40 Q58 26 66 14" stroke="#7a5236" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M64 28 Q80 12 92 22 Q80 34 64 28Z" fill="#6cc070"/><ellipse cx="38" cy="58" rx="6" ry="11" fill="#fff" opacity=".35"/>`,
+tojas:`<path d="M60 14 C 88 14, 98 66, 94 80 C 88 104, 32 104, 26 80 C 22 66, 32 14, 60 14Z" fill="#fbf1de" stroke="#e3cfa8" stroke-width="2.5"/><ellipse cx="46" cy="48" rx="6" ry="12" fill="#fff"/>`,
+dinnye:`<ellipse cx="60" cy="62" rx="52" ry="40" fill="#3f9a4a"/><g stroke="#2a7334" stroke-width="5" fill="none" stroke-linecap="round"><path d="M32 30 Q22 62 34 94"/><path d="M60 22 Q50 62 60 102"/><path d="M88 30 Q98 62 86 94"/></g><ellipse cx="38" cy="46" rx="8" ry="5" fill="#fff" opacity=".25"/>`,
+cica:`<path d="M84 96 Q112 92 104 64" stroke="#ef9a4a" stroke-width="8" fill="none" stroke-linecap="round"/><ellipse cx="60" cy="86" rx="30" ry="26" fill="#ef9a4a"/><polygon points="40,34 44,12 58,28" fill="#ef9a4a"/><polygon points="80,34 76,12 62,28" fill="#ef9a4a"/><circle cx="60" cy="44" r="23" fill="#ef9a4a"/><circle cx="51" cy="42" r="3.5" fill="#3b3450"/><circle cx="69" cy="42" r="3.5" fill="#3b3450"/><path d="M57 51 h6 l-3 4z" fill="#e2606b"/><g stroke="#3b3450" stroke-width="1.5"><path d="M44 52 h-14 M44 56 l-13 4 M76 52 h14 M76 56 l13 4"/></g><ellipse cx="60" cy="92" rx="14" ry="14" fill="#fbd3a8"/>`,
+kenyer:`<path d="M12 80 Q12 36 60 36 Q108 36 108 80 Q108 96 92 96 H28 Q12 96 12 80Z" fill="#d49a5a"/><path d="M14 80 Q14 88 28 90 H92 Q106 88 106 80" fill="#b77a3f"/><g stroke="#f3d9b1" stroke-width="4" stroke-linecap="round"><path d="M36 52 l10 16"/><path d="M54 48 l10 16"/><path d="M72 50 l10 16"/></g>`,
+csoki:`<rect x="22" y="20" width="76" height="86" rx="5" fill="#7a4a2e"/><g fill="#8f5a3a">${[0,1,2].map(r=>[0,1,2].map(c=>`<rect x="${28+c*23}" y="${26+r*16}" width="19" height="12" rx="2"/>`).join('')).join('')}</g><rect x="22" y="72" width="76" height="34" rx="3" fill="#b9a7e6"/><text x="60" y="95" text-anchor="middle" font-size="14" font-weight="900" fill="#fff">CSOKI</text>`,
+banan:`<path d="M18 36 Q24 104 104 84 Q108 76 100 74 Q44 84 32 32Z" fill="#f6d34a" stroke="#d9a92b" stroke-width="2.5" stroke-linejoin="round"/><path d="M18 36 L22 26 L32 32" fill="#7a5236"/><path d="M34 46 Q42 76 90 78" stroke="#e7b92f" stroke-width="3" fill="none"/>`,
+taska:`<path d="M44 30 V20 a8 8 0 0 1 8 -8 h16 a8 8 0 0 1 8 8 V30" stroke="#4180b8" stroke-width="6" fill="none"/><rect x="26" y="28" width="68" height="84" rx="18" fill="#5b9bd5"/><rect x="36" y="70" width="48" height="32" rx="9" fill="#4180b8"/><rect x="54" y="64" width="12" height="10" rx="3" fill="#f6c445"/>`,
+kutya:`<ellipse cx="60" cy="90" rx="30" ry="22" fill="#c98b5a"/><circle cx="60" cy="48" r="24" fill="#c98b5a"/><ellipse cx="36" cy="50" rx="9" ry="18" fill="#9a6b46"/><ellipse cx="84" cy="50" rx="9" ry="18" fill="#9a6b46"/><ellipse cx="60" cy="58" rx="13" ry="10" fill="#f3d9b1"/><ellipse cx="60" cy="53" rx="5" ry="4" fill="#3b3450"/><circle cx="51" cy="42" r="3.5" fill="#3b3450"/><circle cx="69" cy="42" r="3.5" fill="#3b3450"/><path d="M56 63 q4 4 8 0" stroke="#3b3450" stroke-width="2" fill="none"/><rect x="44" y="70" width="32" height="6" rx="3" fill="#e2606b"/>`,
+teherauto:`<rect x="4" y="34" width="74" height="52" rx="4" fill="#5b9bd5"/><rect x="10" y="40" width="62" height="40" rx="3" fill="#7fb3e6"/><path d="M78 50 H98 L114 68 V86 H78Z" fill="#e8636b"/><path d="M84 55 H96 L107 68 H84Z" fill="#cfe8f7"/><circle cx="24" cy="90" r="10" fill="#3b3450"/><circle cx="24" cy="90" r="4" fill="#c9ced9"/><circle cx="50" cy="90" r="10" fill="#3b3450"/><circle cx="50" cy="90" r="4" fill="#c9ced9"/><circle cx="96" cy="90" r="10" fill="#3b3450"/><circle cx="96" cy="90" r="4" fill="#c9ced9"/>`,
+cukorka:`<polygon points="40,60 14,44 18,60 14,76" fill="#f6b6c9"/><polygon points="80,60 106,44 102,60 106,76" fill="#f6b6c9"/><ellipse cx="60" cy="60" rx="24" ry="18" fill="#f29bb3"/><path d="M48 46 q6 14 0 28 M60 42 q6 18 0 36 M72 46 q6 14 0 28" stroke="#fff" stroke-width="3" fill="none" opacity=".7"/>`,
+vonalzo:`<g transform="rotate(-30 60 60)"><rect x="4" y="44" width="112" height="32" rx="4" fill="#f6d34a" stroke="#d9a92b" stroke-width="2"/><g stroke="#8a6d1c" stroke-width="2">${[...Array(11)].map((_,i)=>`<line x1="${10+i*10}" y1="44" x2="${10+i*10}" y2="${i%5?52:58}"/>`).join('')}</g></g>`,
+merleg:`<ellipse cx="60" cy="30" rx="40" ry="9" fill="#c9ced9"/><rect x="56" y="30" width="8" height="18" fill="#9aa2b2"/><path d="M24 50 H96 L104 108 H16Z" fill="#ef9a4a"/><circle cx="60" cy="78" r="18" fill="#fff"/><path d="M60 78 L70 68" stroke="#e2606b" stroke-width="3" stroke-linecap="round"/><g stroke="#3b3450" stroke-width="2"><path d="M46 70 l3 2 M60 62 v3 M74 70 l-3 2"/></g>`,
+mero:`<path d="M84 44 q16 6 4 28" stroke="#3fb0a6" stroke-width="6" fill="none"/><path d="M30 26 H88 L84 108 H34Z" fill="#eef6fc" stroke="#3fb0a6" stroke-width="3"/><path d="M32 56 H86 L84 105 H35Z" fill="#9fdcd5"/><g stroke="#3b3450" stroke-width="2"><path d="M34 40 h12 M34 56 h12 M35 72 h12 M35 88 h12"/></g><path d="M30 26 l-8 -6" stroke="#3fb0a6" stroke-width="3"/>`,
+sapka:`<path d="M24 74 Q24 26 60 26 Q96 26 96 74Z" fill="#9b86d9"/><rect x="18" y="70" width="84" height="16" rx="8" fill="#b9a7e6"/><circle cx="60" cy="22" r="10" fill="#f6b93b"/><path d="M40 92 v16 M52 92 v16 M64 92 v16 M76 92 v16" stroke="#9b86d9" stroke-width="5" stroke-linecap="round"/>`,
+lufi:`<path d="M60 84 Q56 100 64 114" stroke="#8a83a0" stroke-width="2" fill="none"/><ellipse cx="60" cy="48" rx="30" ry="36" fill="#e8636b"/><polygon points="55,86 65,86 60,80" fill="#e8636b"/><ellipse cx="48" cy="34" rx="6" ry="10" fill="#fff" opacity=".4"/>`,
+kavics:`<path d="M30 86 Q20 66 40 54 Q60 44 82 56 Q100 68 90 86 Q80 98 56 96 Q36 96 30 86Z" fill="#8a93a6"/><path d="M44 66 q10 -6 22 -2" stroke="#b6bdcc" stroke-width="4" fill="none" stroke-linecap="round"/>`,
+};
+const pic=(k,cls='')=>`<svg class="pic ${cls}" viewBox="0 0 120 120" aria-hidden="true">${P[k]||''}</svg>`;
+
+/* ============ ADATOK ============ */
+const CATS={
+  h:{n:'Hosszúság',ic:'vonalzo',col:'var(--h)',lc:'var(--hl)',hex:'#5b9bd5',lhex:'#e3effa',
+     what:'milyen hosszú, magas, széles vagy messze van valami',tool:'Vonalzóval vagy mérőszalaggal mérjük.',
+     extra:'Az is hosszúság, hogy milyen magas vagy, és az is, hogy milyen messze van az iskola.'},
+  t:{n:'Tömeg',ic:'merleg',col:'var(--t)',lc:'var(--tl)',hex:'#ef9a4a',lhex:'#fdeedd',
+     what:'milyen nehéz valami',tool:'Mérleggel mérjük.',
+     extra:'Vigyázz: ami nagy, nem mindig nehéz! Egy lufi nagy, de könnyű. Egy kavics kicsi, de nehéz.'},
+  u:{n:'Űrtartalom',ic:'mero',col:'var(--u)',lc:'var(--ul)',hex:'#3fb0a6',lhex:'#ddf3f1',
+     what:'mennyi folyadék fér bele valamibe',tool:'Mérőpohárral mérjük.',
+     extra:'Egy magas, vékony pohárba ugyanannyi víz férhet, mint egy alacsony, széles tálba.'}
+};
+const U={
+  mm:{c:'h',f:1,n:'milliméter',pic:'mak',sh:'egy mákszem',tip:'Nagyon pici! Egy mákszem kb. 1 mm. A vonalzón a legkisebb vonalkák között 1 mm van.'},
+  cm:{c:'h',f:10,n:'centiméter',pic:'ujj',sh:'a kisujjad körme',tip:'A kisujjad körme kb. 1 cm széles.'},
+  dm:{c:'h',f:100,n:'deciméter',pic:'bogre',sh:'egy bögre magassága',tip:'Egy bögre kb. 1 dm magas.'},
+  m:{c:'h',f:1000,n:'méter',pic:'gitar',sh:'egy gitár hossza',tip:'Egy gitár kb. 1 m hosszú. Egy felnőtt nagy lépése is kb. 1 m.'},
+  km:{c:'h',f:1000000,n:'kilométer',pic:'ut',sh:'negyedórányi séta',tip:'1 km-t kb. 15 perc alatt sétálsz végig. Ez olyan hosszú, mint 10 focipálya egymás után.'},
+  g:{c:'t',f:1,n:'gramm',pic:'gemkapocs',sh:'egy gemkapocs',tip:'Egy gemkapocs kb. 1 g. Szinte semmit nem nyom!'},
+  dkg:{c:'t',f:10,n:'dekagramm',pic:'dio',sh:'egy dió',tip:'Egy dió kb. 1 dkg. A boltban a sonkát dekában kérjük: „10 deka sonkát kérek!”'},
+  kg:{c:'t',f:1000,n:'kilogramm',pic:'liszt',sh:'egy zacskó liszt',tip:'Egy zacskó liszt vagy cukor 1 kg. Egy liter víz is 1 kg.'},
+  t:{c:'t',f:1000000,n:'tonna',pic:'teherauto',sh:'egy kis autó',tip:'Egy kis autó kb. 1 t. Egy teherautó több tonnát is elbír.'},
+  ml:{c:'u',f:1,n:'milliliter',pic:'cseppento',sh:'néhány csepp',tip:'1 ml csak néhány csepp. Egy kiskanál orvosság 5 ml.'},
+  cl:{c:'u',f:10,n:'centiliter',pic:'kanal2',sh:'két kiskanálnyi',tip:'Két kiskanál víz kb. 1 cl.'},
+  dl:{c:'u',f:100,n:'deciliter',pic:'csesze',sh:'egy kis csészényi',tip:'Egy kis csészébe kb. 1 dl fér.'},
+  l:{c:'u',f:1000,n:'liter',pic:'tej',sh:'egy doboz tej',tip:'Egy doboz tej 1 l.'},
+  hl:{c:'u',f:100000,n:'hektoliter',pic:'hordo',sh:'egy nagy hordónyi',tip:'Egy nagy hordóba kb. 1 hl fér. Ez 100 liter!'},
+};
+const OBJ=[
+  {p:'ceruza',c:'h',q:'Milyen hosszú egy ceruza?',v:15,u:'cm'},
+  {p:'auto',c:'h',q:'Milyen hosszú egy autó?',v:4,u:'m'},
+  {p:'busz',c:'h',q:'Milyen hosszú egy busz?',v:12,u:'m'},
+  {p:'fa',c:'h',q:'Milyen magas egy nagy fa?',v:10,u:'m'},
+  {p:'haz',c:'h',q:'Milyen magas egy családi ház?',v:8,u:'m'},
+  {p:'ajto',c:'h',q:'Milyen magas egy ajtó?',v:2,u:'m'},
+  {p:'labda',c:'h',q:'Milyen széles egy focilabda?',v:22,u:'cm'},
+  {p:'hangya',c:'h',q:'Milyen hosszú egy hangya?',v:4,u:'mm'},
+  {p:'katica',c:'h',q:'Milyen hosszú egy katicabogár?',v:6,u:'mm'},
+  {p:'zsiraf',c:'h',q:'Milyen magas egy zsiráf?',v:5,u:'m'},
+  {p:'agy',c:'h',q:'Milyen hosszú egy ágy?',v:2,u:'m'},
+  {p:'asztal',c:'h',q:'Milyen magas egy asztal?',v:75,u:'cm'},
+  {p:'varos',c:'h',q:'Milyen messze van Kecskemét Budapesttől?',v:85,u:'km'},
+  {p:'bogre',c:'h',q:'Milyen magas egy bögre?',v:1,u:'dm'},
+  {p:'alma',c:'t',q:'Milyen nehéz egy alma?',v:20,u:'dkg'},
+  {p:'tojas',c:'t',q:'Milyen nehéz egy tojás?',v:6,u:'dkg'},
+  {p:'dinnye',c:'t',q:'Milyen nehéz egy görögdinnye?',v:5,u:'kg'},
+  {p:'cica',c:'t',q:'Milyen nehéz egy cica?',v:4,u:'kg'},
+  {p:'kenyer',c:'t',q:'Milyen nehéz egy kenyér?',v:1,u:'kg'},
+  {p:'csoki',c:'t',q:'Milyen nehéz egy tábla csoki?',v:10,u:'dkg'},
+  {p:'banan',c:'t',q:'Milyen nehéz egy banán?',v:20,u:'dkg'},
+  {p:'taska',c:'t',q:'Milyen nehéz egy teli iskolatáska?',v:4,u:'kg'},
+  {p:'kutya',c:'t',q:'Milyen nehéz egy nagy kutya?',v:30,u:'kg'},
+  {p:'auto',c:'t',q:'Milyen nehéz egy autó?',v:1,u:'t'},
+  {p:'gemkapocs',c:'t',q:'Milyen nehéz egy gemkapocs?',v:1,u:'g'},
+  {p:'cukorka',c:'t',q:'Milyen nehéz egy cukorka?',v:5,u:'g'},
+  {p:'dio',c:'t',q:'Milyen nehéz egy dió?',v:1,u:'dkg'},
+  {p:'pohar',c:'u',q:'Mennyi víz fér egy pohárba?',v:2,u:'dl'},
+  {p:'vodor',c:'u',q:'Mennyi víz fér egy vödörbe?',v:10,u:'l'},
+  {p:'kanna',c:'u',q:'Mennyi víz fér egy locsolókannába?',v:5,u:'l'},
+  {p:'akvarium',c:'u',q:'Mennyi víz fér egy akváriumba?',v:50,u:'l'},
+  {p:'palack',c:'u',q:'Mennyi üdítő fér egy kis palackba?',v:5,u:'dl'},
+  {p:'tanyer',c:'u',q:'Mennyi leves fér egy tányérba?',v:3,u:'dl'},
+  {p:'kad',c:'u',q:'Mennyi víz fér egy kádba?',v:150,u:'l'},
+  {p:'kanal',c:'u',q:'Mennyi orvosság fér egy kiskanálba?',v:5,u:'ml'},
+  {p:'bogre',c:'u',q:'Mennyi tea fér egy bögrébe?',v:3,u:'dl'},
+  {p:'tej',c:'u',q:'Mennyi tej van egy tejesdobozban?',v:1,u:'l'},
+  {p:'hordo',c:'u',q:'Mennyi víz fér egy nagy hordóba?',v:1,u:'hl'},
+];
+const inn=u=>['g','dkg','kg','t'].includes(u)?'ban':'ben';
+const nal=n=>[3,6,8,13].includes(n)?'nál':'nél';
+const STEP={10:'tízesével',100:'százasával',1000:'ezresével',10000:'tízezresével'};
+const PRAISE=['Szuper!','Ügyes vagy!','Pontosan!','Ez az!','Hibátlan!','Nagyon jó!','Telitalálat!'];
+
+/* ============ ÁLLAPOT ============ */
+const DEF={units:{mm:1,cm:1,dm:1,m:1,km:1,g:1,dkg:1,kg:1,t:1,ml:1,cl:1,dl:1,l:1,hl:1},limit:1000,compound:false,shift:true,voice:true,len:8,voiceName:'',rate:0.95};
+let S={set:JSON.parse(JSON.stringify(DEF)),stars:0,best:{}};
+const KEY='mertekegyseg-kaland-v1';
+try{const s=JSON.parse(localStorage.getItem(KEY)||'null'); if(s){S.stars=s.stars||0;S.best=s.best||{};S.set=Object.assign(S.set,s.set||{});S.set.units=Object.assign({},DEF.units,(s.set||{}).units||{});if(!('t' in ((s.set||{}).units||{})))S.set.units.hl=1;S.name=s.name||'';}}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let view={s:'home'}; let R=null;
+
+/* ============ SEGÉDEK ============ */
+const $=s=>document.querySelector(s);
+const rand=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const fmt=n=>n>=10000?n.toLocaleString('hu-HU'):String(n);
+const on=u=>!!S.set.units[u];
+const unitsOf=c=>Object.keys(U).filter(k=>U[k].c===c&&on(k)).sort((a,b)=>U[a].f-U[b].f);
+const allUnitsOf=c=>Object.keys(U).filter(k=>U[k].c===c).sort((a,b)=>U[b].f-U[a].f);
+function pairs(cats){const out=[];cats.forEach(c=>{const us=unitsOf(c);for(let i=0;i<us.length;i++)for(let j=i+1;j<us.length;j++){const r=U[us[j]].f/U[us[i]].f;if(r<=S.set.limit){const p={big:us[j],small:us[i],r};out.push(p);if(j===i+1)out.push(p);}}});return out;}
+const objsFor=cats=>OBJ.filter(o=>cats.includes(o.c)&&on(o.u));
+function catOk(act,c){if(act==='test')return pairs([c]).some(p=>p.r>=10);if(act==='unit')return objsFor([c]).length>0;return pairs([c]).length>0;}
+let voices=[];
+const vScore=v=>(/natural|neural|online|enhanced|premium/i.test(v.name)?4:0)+(/google/i.test(v.name)?2:0)+(v.localService===false?1:0);
+function loadVoices(){try{voices=speechSynthesis.getVoices().filter(v=>/^hu/i.test(v.lang)).sort((a,b)=>vScore(b)-vScore(a));if(view&&view.s==='set')render();}catch(e){}}
+function curVoice(){return voices.find(v=>v.name===S.set.voiceName)||voices[0]||null;}
+if('speechSynthesis' in window){loadVoices();speechSynthesis.onvoiceschanged=loadVoices;}
+const WB='(?![0-9A-Za-zÁÉÍÓÖŐÚÜŰáéíóöőúüű])',NB='(?<![0-9A-Za-zÁÉÍÓÖŐÚÜŰáéíóöőúüű])';
+function spoken(t){return t.replace(/(\d+)\s*Ft-ot/g,'$1 forintot').replace(/(\d+)\s*Ft/g,'$1 forint').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/gu,'').replace(new RegExp('(\\d+)\\s*(mm|cm|dm|km|m|dkg|kg|g|t|ml|cl|dl|hl|l)'+WB,'g'),(_,n,u)=>n+' '+U[u].n).replace(new RegExp(NB+'(mm|cm|dm|km|dkg|kg|ml|cl|dl|hl)'+WB,'g'),u=>U[u].n).replace(/,? az hány/g,', az hány').replace(/\? /g,'?  ').replace(/=/g,' egyenlő ').replace(/×/g,' szorozva ').replace(/<[^>]+>/g,' ');}
+function useBerta(){return !S.set.voiceName||S.set.voiceName==='berta';}
+function bertaStatus(){if(!useBerta())return '';return BERTA.state==='ready'?'✔️ Berta hangja betöltve.':BERTA.state==='loading'?`⏳ Berta hangjának letöltése: ${BERTA.pct}% (egyszer kell, kb. 40 MB; addig a készülék hangja olvas)`:BERTA.state==='error'?`⚠️ Berta hangját nem sikerült betölteni (${BERTA.err}). Addig a készülék hangja olvas.`:'Berta hangja az első felolvasáskor töltődik le (egyszer, kb. 40 MB).';}
+function bertaProg(){const e=document.getElementById('bstat');if(e)e.textContent=bertaStatus();const h=document.getElementById('hstat');if(h)h.textContent=BERTA.state==='loading'?`🔊 ${BERTA.pct}%`:'';}
+function startBerta(){if(useBerta()&&BERTA.state==='off')bertaLoad('tts/',bertaProg).then(bertaProg);}
+function deviceSay(txt){if(!('speechSynthesis' in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt);u.lang='hu-HU';const cv=curVoice();if(cv)u.voice=cv;u.rate=S.set.rate||0.95;u.pitch=1.05;speechSynthesis.speak(u);}catch(e){}}
+function say(t,force){if(!(S.set.voice||force))return;const txt=spoken(t).replace(/\s+/g,' ').trim();if(!txt)return;
+  try{speechSynthesis.cancel();}catch(e){}bertaStop();
+  if(useBerta()){if(BERTA.state==='ready'){bertaSay(txt,(S.set.rate||0.95)/0.95).catch(e=>{console.error(e);deviceSay(txt);});return;}startBerta();}
+  deviceSay(txt);}
+document.addEventListener('pointerdown',()=>{if(useBerta()&&BERTA.state!=='off'){try{bertaCtx();}catch(e){}}},true);
+function confetti(){const d=document.createElement('div');d.className='confetti';const cols=['#f6b93b','#e8636b','#5b9bd5','#43a861','#9b86d9','#3fb0a6'];for(let i=0;i<40;i++){const c=document.createElement('i');c.style.left=Math.random()*100+'%';c.style.background=pick(cols);c.style.animationDelay=Math.random()*.5+'s';d.appendChild(c);}document.body.appendChild(d);setTimeout(()=>d.remove(),2400);}
+
+/* ============ ÁBRÁK ============ */
+function stairs(cat,hl=[]){
+  const us=allUnitsOf(cat),C=CATS[cat],bw=56,bh=34,dx=64,dy=30;
+  const W=8+us.length*dx+14,H=8+(us.length-1)*dy+bh+4;let s='';
+  us.forEach((u,i)=>{const x=6+i*dx,y=6+i*dy,h=hl.includes(u),act=on(u);
+    if(i<us.length-1){const r=U[u].f/U[us[i+1]].f,cx=x+dx+bw/2;
+      s+=`<path d="M${x+bw} ${y+bh/2} H${cx} V${y+dy-3}" stroke="${C.hex}" stroke-width="2.5" fill="none"/><polygon points="${cx-5},${y+dy-8} ${cx+5},${y+dy-8} ${cx},${y+dy-1}" fill="${C.hex}"/><text x="${cx+4}" y="${y+12}" font-size="13" font-weight="900" fill="${C.hex}">×${fmt(r)}</text>`;}
+    s+=`<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="9" fill="${h?C.hex:(act?'#fff':'#f1eef5')}" stroke="${act||h?C.hex:'#d8d2e2'}" stroke-width="2.5"/><text x="${x+bw/2}" y="${y+23}" text-anchor="middle" font-size="18" font-weight="900" fill="${h?'#fff':(act?'#3b3450':'#b7b0c4')}">${u}</text>`;});
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" style="max-width:100%">${s}</svg>`;
+}
+function blocks(big,small,count){
+  const r=U[big].f/U[small].f,C=CATS[U[big].c],bh=34,gap=10,shown=Math.min(count,5);
+  const H=shown*(bh+gap)+(count>5?22:0);let s='';const cw=316/10;
+  for(let i=0;i<shown;i++){const y=i*(bh+gap)+2;
+    s+=`<rect x="2" y="${y}" width="316" height="${bh}" rx="8" fill="${C.lhex}" stroke="${C.hex}" stroke-width="2.5"/>`;
+    for(let j=1;j<10;j++)s+=`<line x1="${2+j*cw}" y1="${y}" x2="${2+j*cw}" y2="${y+bh}" stroke="${C.hex}" stroke-width="1.3"/>`;
+    for(let j=0;j<10;j++)s+=`<text x="${2+j*cw+cw/2}" y="${y+22}" text-anchor="middle" font-size="${r/10>=1000?9:12}" font-weight="900" fill="#3b3450">${fmt(r/10)}</text>`;}
+  if(count>5)s+=`<text x="160" y="${H-4}" text-anchor="middle" font-size="14" font-weight="900" fill="${C.hex}">… és így tovább, összesen ${count} csík</text>`;
+  return `<svg viewBox="0 0 320 ${H}" width="320">${s}</svg>`;
+}
+function bars(a,b,small,cat){
+  const C=CATS[cat],mx=Math.max(a.v,b.v),w=v=>Math.max(14,Math.round(250*v/mx));
+  const row=(o,y)=>`<rect x="2" y="${y}" width="${w(o.v)}" height="26" rx="7" fill="${C.hex}" opacity="${o.v===mx?1:.55}"/><text x="${w(o.v)+8}" y="${y+19}" font-size="15" font-weight="900" fill="#3b3450">${fmt(o.v)} ${small}</text>`;
+  return `<svg viewBox="0 0 340 70" width="340">${row(a,4)}${row(b,40)}</svg>`;
+}
+/* ---- Mérés: rajzok és skálák ---- */
+const LONG={
+ ceruza:(xs,xe,cy)=>{const w=xe-xs,t=Math.min(18,w*.3);return `<rect x="${xs}" y="${cy-9}" width="8" height="18" rx="3" fill="#f29bb3"/><rect x="${xs+7}" y="${cy-9}" width="5" height="18" fill="#b8bcc6"/><rect x="${xs+12}" y="${cy-9}" width="${Math.max(1,w-12-t)}" height="18" fill="#5b9bd5"/><rect x="${xs+12}" y="${cy-9}" width="${Math.max(1,w-12-t)}" height="6" fill="#7fb3e6"/><polygon points="${xe-t},${cy-9} ${xe},${cy} ${xe-t},${cy+9}" fill="#f3d9b1"/><polygon points="${xe-t*.35},${cy-3} ${xe},${cy} ${xe-t*.35},${cy+3}" fill="#3b3450"/>`;},
+ kukac:(xs,xe,cy)=>{let g=`<rect x="${xs}" y="${cy-9}" width="${xe-xs}" height="18" rx="9" fill="#8fcf72"/>`;for(let x=xs+12;x<xe-10;x+=10)g+=`<line x1="${x}" y1="${cy-8}" x2="${x}" y2="${cy+8}" stroke="#6aae50" stroke-width="2"/>`;return g+`<circle cx="${xe-7}" cy="${cy-2}" r="2.5" fill="#3b3450"/>`;},
+ kreta:(xs,xe,cy)=>{const w=xe-xs;return `<rect x="${xs}" y="${cy-9}" width="${w}" height="18" rx="4" fill="#e8636b"/><rect x="${xs+w*.2}" y="${cy-9}" width="${w*.6}" height="18" fill="#fff" opacity=".85"/><text x="${xs+w/2}" y="${cy+5}" text-anchor="middle" font-size="11" font-weight="900" fill="#e8636b">${w>60?'KRÉTA':''}</text>`;},
+ tura:(xs,xe,cy)=>`<line x1="${xs}" y1="${cy}" x2="${xe}" y2="${cy}" stroke="#9b86d9" stroke-width="6" stroke-linecap="round"/><text x="${xs}" y="${cy-6}" font-size="20" text-anchor="middle">🚲</text><path d="M${xe} ${cy} V${cy-26}" stroke="#7a5236" stroke-width="2.5"/><path d="M${xe} ${cy-26} l14 5 -14 5z" fill="#e8636b"/>`
+};
+const HAJO=`<path d="M100 4 V50" stroke="#7a5236" stroke-width="3"/><polygon points="103,6 140,46 103,46" fill="#fff" stroke="#d6d0e0" stroke-width="1.5"/><polygon points="97,12 97,46 66,46" fill="#f6b6c9"/><rect x="128" y="28" width="46" height="21" rx="3" fill="#f7e2c4"/><g fill="#8fc3e8"><circle cx="141" cy="38" r="4"/><circle cx="157" cy="38" r="4"/></g><path d="M0 48 H200 L184 80 H18 Z" fill="#e8636b"/><rect x="8" y="56" width="184" height="5" fill="#fff" opacity=".8"/>`;
+const LANY=`<circle cx="30" cy="16" r="16" fill="#9a6b46"/><ellipse cx="48" cy="26" rx="6" ry="12" fill="#9a6b46"/><circle cx="30" cy="22" r="13" fill="#f3c9a8"/><circle cx="25" cy="21" r="1.8" fill="#3b3450"/><circle cx="35" cy="21" r="1.8" fill="#3b3450"/><path d="M26 28 q4 3 8 0" stroke="#e2606b" stroke-width="1.6" fill="none"/><rect x="26" y="34" width="8" height="6" fill="#f3c9a8"/><rect x="6" y="44" width="7" height="50" rx="3.5" fill="#f3c9a8"/><rect x="47" y="44" width="7" height="50" rx="3.5" fill="#f3c9a8"/><polygon points="16,40 44,40 54,118 6,118" fill="#e8636b"/><rect x="18" y="116" width="9" height="76" fill="#f3c9a8"/><rect x="33" y="116" width="9" height="76" fill="#f3c9a8"/><ellipse cx="22" cy="195" rx="9" ry="5" fill="#5b9bd5"/><ellipse cx="38" cy="195" rx="9" ry="5" fill="#5b9bd5"/>`;
+const APA=`<circle cx="30" cy="12" r="12" fill="#5a3a26"/><circle cx="30" cy="17" r="11" fill="#f3c9a8"/><circle cx="26" cy="16" r="1.5" fill="#3b3450"/><circle cx="34" cy="16" r="1.5" fill="#3b3450"/><path d="M26 22 q4 3 8 0" stroke="#9a6b46" stroke-width="1.5" fill="none"/><rect x="26" y="27" width="8" height="5" fill="#f3c9a8"/><rect x="6" y="36" width="7" height="62" rx="3.5" fill="#5b9bd5"/><rect x="47" y="36" width="7" height="62" rx="3.5" fill="#5b9bd5"/><rect x="13" y="31" width="34" height="72" rx="6" fill="#5b9bd5"/><rect x="14" y="100" width="14" height="92" fill="#3b3450"/><rect x="32" y="100" width="14" height="92" fill="#3b3450"/><ellipse cx="20" cy="195" rx="10" ry="5" fill="#2a2438"/><ellipse cx="40" cy="195" rx="10" ry="5" fill="#2a2438"/>`;
+const MO={
+ katica:{s:`<g transform="rotate(-90 60 60)">${P.katica}</g>`,vb:[17,17,88,86]},
+ hangya:{s:P.hangya,vb:[5,24,98,74]},
+ auto:{s:P.auto,vb:[10,34,100,64]}, busz:{s:P.busz,vb:[5,28,110,72]}, hajo:{s:HAJO,vb:[0,0,200,80]},
+ lany:{s:LANY,vb:[0,0,60,200]}, apa:{s:APA,vb:[0,0,60,200]}, ajto:{s:P.ajto,vb:[26,8,68,108]},
+ agy:{s:P.agy,vb:[8,38,104,70]}, asztal:{s:P.asztal,vb:[10,8,100,103]},
+ fa:{s:P.fa,vb:[18,8,84,104]}, haz:{s:P.haz,vb:[14,20,92,90]}, zsiraf:{s:P.zsiraf,vb:[16,4,80,110]}
+};
+const rng=(a,b,st)=>{const o=[];for(let v=a;v<=b;v+=st)o.push(v);return o;};
+const SC={
+ mm:{dir:'h',max:20,band:['#fbe9a6','#d9b94a','#6b5414'],ticks:[[1,10],[5,16],[10,22]],r1:{e:5,t:v=>v},u1:'mm',ohMax:80,
+   legend:'Nagyítva! Egy kis lépés: 1 mm.',units:[['mm',1]],shift:v=>rand(1,6),
+   items:[{o:'katica',n:'a katica',q:'Milyen hosszú a katica?',lens:rng(5,9,1)},{o:'hangya',n:'a hangya',q:'Milyen hosszú a hangya?',lens:rng(4,8,1)}]},
+ cm:{dir:'h',max:150,band:['#fbe9a6','#d9b94a','#6b5414'],ticks:[[1,6],[5,11],[10,18]],r1:{e:10,t:v=>v/10},u1:'cm',
+   legend:'Kis vonás: 1 mm. Hosszú vonás: 1 cm.',units:[['cm',3],['mm',2]],shift:v=>rand(1,4)*10,
+   items:[{o:'ceruza',n:'a ceruza',q:'Milyen hosszú a ceruza?',lens:rng(40,140,1),long:1},{o:'kukac',n:'a kukac',q:'Milyen hosszú a kukac?',lens:rng(25,120,1),long:1},{o:'kreta',n:'a kréta',q:'Milyen hosszú a kréta?',lens:rng(30,90,1),long:1}]},
+ tall:{dir:'v',max:2100,band:['#e3effa','#5b9bd5','#2f5f8f'],ticks:[[50,8],[100,16],[1000,34]],
+   r1:{e:100,t:v=>v/10,head:'cm'},r2:{e:100,t:v=>v%1000===0&&v?`${v/100} = ${v/1000} m`:v/100,head:'dm'},
+   legend:'Bal oldalt cm, jobb oldalt dm. Rövid vonás: 5 cm. Hosszabb: 1 dm (10 cm). Leghosszabb: 1 m.',units:[['dm',3],['cm',3],['m',2]],
+   items:[{o:'lany',n:'a kislány',q:'Milyen magas a kislány?',lens:rng(1100,1500,100)},{o:'apa',n:'apa',q:'Milyen magas apa?',lens:rng(1600,1900,100)},{o:'ajto',n:'az ajtó',q:'Milyen magas az ajtó?',lens:[2000]}]},
+ tape:{dir:'h',max:3000,band:['#fbe9a6','#d9b94a','#6b5414'],ticks:[[100,12],[500,18],[1000,30]],r1:{e:500,t:v=>v/100},u1:'dm',r2:{e:1000,t:v=>v?`${v/1000} m`:''},ohMax:70,
+   legend:'Mérőszalag. Kis vonás: 1 dm (10 cm). Nagy vonás: 1 m. A számok deciméterek.',units:[['m',2],['dm',3],['cm',2]],shift:v=>rand(1,Math.min(6,(3000-v)/100))*100,
+   items:[{o:'agy',n:'az ágy',q:'Milyen hosszú az ágy?',lens:rng(1800,2100,100)},{o:'asztal',n:'az asztal',q:'Milyen hosszú az asztal?',lens:rng(1000,1600,100)}]},
+ dock:{dir:'h',max:20000,band:['#e9d3ae','#a8713f','#5a3a26'],ticks:[[1000,14],[5000,26]],r1:{e:1000,t:v=>v/1000},u1:'m',ohMax:64,
+   legend:'Egy lépés: 1 m.',units:[['m',4],['dm',1]],shift:v=>rand(1,3)*1000,
+   items:[{o:'hajo',n:'a hajó',q:'Milyen hosszú a hajó?',lens:rng(8000,17000,1000)},{o:'busz',n:'a busz',q:'Milyen hosszú a busz?',lens:rng(10000,13000,1000)},{o:'auto',n:'az autó',q:'Milyen hosszú az autó?',lens:[4000,5000]}]},
+ high:{dir:'v',max:12000,band:['#eceff4','#8a93a6','#3b3450'],ticks:[[1000,18],[5000,34]],r1:{e:1000,t:v=>v,head:'m'},
+   legend:'Egy lépés: 1 m.',units:[['m',4],['dm',1]],
+   items:[{o:'fa',n:'a fa',q:'Milyen magas a fa?',lens:rng(6000,12000,1000)},{o:'haz',n:'a ház',q:'Milyen magas a ház?',lens:rng(7000,10000,1000)},{o:'zsiraf',n:'a zsiráf',q:'Milyen magas a zsiráf?',lens:[4000,5000,6000]}]},
+ km:{dir:'h',max:10e6,road:1,ticks:[[1e6,0]],r1:{e:1e6,t:v=>v/1e6},u1:'km',
+   legend:'Az út mellett 1 km-enként áll egy kilométerkő.',units:[['km',1]],shift:v=>rand(1,Math.min(4,10-v/1e6))*1e6,
+   items:[{o:'tura',n:'a biciklitúra',q:'Milyen hosszú volt a biciklitúra?',lens:rng(2e6,8e6,1e6),long:1}]}
+};
+SC.high.r1.t=v=>v/1000;
+function wpick(list){const tot=list.reduce((a,b)=>a+b[1],0);let r=Math.random()*tot;for(const x of list){if((r-=x[1])<0)return x[0];}return list[0][0];}
+function nestObj(o,x,y,w,h){const m=MO[o];return `<svg x="${x}" y="${y}" width="${w}" height="${h}" viewBox="${m.vb.join(' ')}" preserveAspectRatio="none">${m.s}</svg>`;}
+function scaleSVG(q,done){
+  const sc=SC[q.sc],it=q.it,f=U[q.u].f,label=`${fmt(q.ans)} ${q.u}`,[bf,bs,bt]=sc.band||['#c9ced9','#8a93a6','#3b3450'];
+  let g='';
+  if(sc.dir==='h'){
+    const x0=22,L=316,k=L/sc.max,xs=x0+q.sh*k,xe=x0+(q.sh+q.len)*k,w=xe-xs,top=sc.road?34:10;
+    let oh;
+    if(it.long)oh=sc.road?14:24;else{const m=MO[it.o];oh=Math.min(sc.ohMax,w*m.vb[3]/m.vb[2]);}
+    const bandY=top+oh+14,bandH=sc.road?26:40;
+    if(it.long)g+=LONG[it.o](xs,xe,top+oh/2);else g+=nestObj(it.o,xs,top,w,oh);
+    if(sc.road){g+=`<rect x="4" y="${bandY}" width="352" height="${bandH}" rx="4" fill="#9aa2b2"/><line x1="4" y1="${bandY+bandH/2}" x2="356" y2="${bandY+bandH/2}" stroke="#fff" stroke-width="2" stroke-dasharray="10 8"/>`;
+      for(let v=0;v<=sc.max;v+=1e6){const x=x0+v*k;g+=`<rect x="${x-7}" y="${bandY+bandH+4}" width="14" height="20" rx="5" fill="#fff" stroke="#8a93a6"/><rect x="${x-7}" y="${bandY+bandH+4}" width="14" height="6" rx="3" fill="#e2606b"/><text x="${x}" y="${bandY+bandH+21}" text-anchor="middle" font-size="9" font-weight="900" fill="#3b3450">${v/1e6}</text>`;}
+    }else{
+      g+=`<rect x="${x0-12}" y="${bandY}" width="${L+24}" height="${bandH}" rx="5" fill="${bf}" stroke="${bs}" stroke-width="2"/>`;
+      const e0=sc.ticks[0][0];for(let v=0;v<=sc.max;v+=e0){let h=0,big=false;sc.ticks.forEach(([e,th],i)=>{if(v%e===0){h=th;big=i===sc.ticks.length-1;}});const x=x0+v*k;g+=`<line x1="${x}" y1="${bandY}" x2="${x}" y2="${bandY+h}" stroke="${bt}" stroke-width="${big?2:1}"/>`;}
+      for(let v=0;v<=sc.max;v+=sc.r1.e)g+=`<text x="${x0+v*k}" y="${bandY+bandH-6}" text-anchor="middle" font-size="11" font-weight="900" fill="${bt}">${sc.r1.t(v)}</text>`;
+      g+=`<text x="${x0+L+4}" y="${bandY+12}" font-size="9" font-weight="900" fill="${bt}" text-anchor="middle">${sc.u1}</text>`;
+      if(sc.r2)for(let v=sc.r2.e;v<=sc.max;v+=sc.r2.e)g+=`<text x="${x0+v*k}" y="${bandY+bandH+15}" text-anchor="middle" font-size="12" font-weight="900" fill="#e2606b">${sc.r2.t(v)}</text>`;
+    }
+    g+=`<g stroke="#e2606b" stroke-width="2" stroke-dasharray="4 3"><line x1="${xs}" y1="${top+oh}" x2="${xs}" y2="${bandY+(sc.road?bandH:10)}"/><line x1="${xe}" y1="${top+oh}" x2="${xe}" y2="${bandY+(sc.road?bandH:10)}"/></g>`;
+    let H=bandY+bandH+(sc.r2||sc.road?28:8);
+    if(done){const y=H+6;g+=`<line x1="${xs}" y1="${y}" x2="${xe}" y2="${y}" stroke="#9b86d9" stroke-width="3"/><polygon points="${xs},${y} ${xs+8},${y-5} ${xs+8},${y+5}" fill="#9b86d9"/><polygon points="${xe},${y} ${xe-8},${y-5} ${xe-8},${y+5}" fill="#9b86d9"/><text x="${(xs+xe)/2}" y="${y+20}" text-anchor="middle" font-size="15" font-weight="900" fill="#9b86d9">${label}</text>`;H=y+28;}
+    return `<svg viewBox="0 0 360 ${H}" width="360" style="max-width:100%">${g}</svg>`;
+  }
+  const top=30,Lv=330,gy=top+Lv,k=Lv/sc.max,bx=sc.r2?110:70,bw=34,h=q.len*k,m=MO[it.o];
+  const ow=Math.min(115,h*m.vb[2]/m.vb[3]),ox=sc.r2?232:150;
+  g+=`<rect x="${bx}" y="${top-6}" width="${bw}" height="${Lv+6}" rx="4" fill="${bf}" stroke="${bs}" stroke-width="2"/>`;
+  const e0=sc.ticks[0][0];for(let v=0;v<=sc.max;v+=e0){let th=0,big=false;sc.ticks.forEach(([e,tt],i)=>{if(v%e===0){th=tt;big=i===sc.ticks.length-1;}});const y=gy-v*k;g+=`<line x1="${bx}" y1="${y}" x2="${bx+th}" y2="${y}" stroke="${big?'#e2606b':bt}" stroke-width="${big?2.5:1}"/>`;}
+  for(let v=0;v<=sc.max;v+=sc.r1.e)g+=`<text x="${bx-5}" y="${gy-v*k+4}" text-anchor="end" font-size="10.5" font-weight="900" fill="${v%(sc.ticks[sc.ticks.length-1][0])===0&&v?'#e2606b':bt}">${sc.r1.t(v)}</text>`;
+  g+=`<text x="${bx-5}" y="${top-12}" text-anchor="end" font-size="12" font-weight="900" fill="${bt}">${sc.r1.head}</text>`;
+  if(sc.r2){for(let v=0;v<=sc.max;v+=sc.r2.e){const big=v%1000===0&&v;g+=`<text x="${bx+bw+5}" y="${gy-v*k+4}" font-size="${big?12:10.5}" font-weight="900" fill="${big?'#e2606b':bt}">${sc.r2.t(v)}</text>`;}
+    g+=`<text x="${bx+bw+5}" y="${top-12}" font-size="12" font-weight="900" fill="${bt}">${sc.r2.head}</text>`;}
+  g+=`<line x1="4" y1="${gy}" x2="416" y2="${gy}" stroke="#8a93a6" stroke-width="3"/>`;
+  g+=nestObj(it.o,ox,gy-h,ow,h);
+  g+=`<line x1="${bx+bw}" y1="${gy-h}" x2="${ox+ow/2}" y2="${gy-h}" stroke="#e2606b" stroke-width="2" stroke-dasharray="4 3"/>`;
+  if(done){const x=ox+ow+14;g+=`<line x1="${x}" y1="${gy}" x2="${x}" y2="${gy-h}" stroke="#9b86d9" stroke-width="3"/><polygon points="${x},${gy-h} ${x-5},${gy-h+8} ${x+5},${gy-h+8}" fill="#9b86d9"/><polygon points="${x},${gy} ${x-5},${gy-8} ${x+5},${gy-8}" fill="#9b86d9"/><text x="${x+10}" y="${gy-h/2}" font-size="15" font-weight="900" fill="#9b86d9" transform="rotate(-90 ${x+10} ${gy-h/2})" text-anchor="middle" dy="12">${label}</text>`;}
+  return `<svg viewBox="0 0 420 ${gy+10}" width="420" style="max-width:100%">${g}</svg>`;
+}
+function measureOptions(len,sc){return sc.units.filter(([u])=>on(u)&&len%U[u].f===0&&len/U[u].f>=1&&len/U[u].f<=S.set.limit);}
+function sceneOk(id){const sc=SC[id];return sc.items.some(it=>it.lens.some(l=>measureOptions(l,sc).length));}
+
+/* ============ FELADATGENERÁTOROK ============ */
+function genConv(cats){
+  const p=pick(pairs(cats)),{big,small,r}=p,maxN=Math.floor(S.set.limit/r);
+  const n=rand(1,Math.max(1,Math.min(maxN,r===10?15:9)));
+  const down=Math.random()<.5;
+  if(down&&S.set.compound&&Math.random()<.45&&n*r+1<=S.set.limit){
+    let k=r===10?rand(1,9):rand(1,9)*(r/10)+(Math.random()<.5&&r>=100?rand(1,9)*(r/100):0);
+    if(k<r&&n*r+k<=S.set.limit){const ans=n*r+k;
+      return{kind:'conv',key:`c${n}${big}${k}`,cat:U[big].c,input:'num',ans,
+        eq:`<span>${n} ${big} ${fmt(k)} ${small}</span><span>=</span>SLOT<span>${small}</span>`,
+        say:`${n} ${big} és ${k} ${small} az hány ${small}?`,
+        hint:v=>v===n*r?`Majdnem! Ne felejtsd el hozzáadni a maradékot is: ${fmt(k)} ${small}!`:v===n+k?`A két számot nem adhatod össze, mert más az egységük. Előbb váltsd át ezt: ${n} ${big}!`:`Előbb váltsd át: ${n} ${big} hány ${small}? Utána add hozzá ezt is: ${fmt(k)} ${small}.`,
+        help:done=>`${stairs(U[big].c,[big,small])}<div>1 ${big} = ${fmt(r)} ${small}</div>${blocks(big,small,n)}<div>${n} ${big} = <b>${fmt(n*r)} ${small}</b><br>${fmt(n*r)} + ${fmt(k)} = <b>${done?fmt(ans)+' '+small:'?'}</b></div>`};}
+  }
+  if(down){const ans=n*r;
+    return{kind:'conv',key:`d${n}${big}${small}`,cat:U[big].c,input:'num',ans,
+      eq:`<span>${n} ${big}</span><span>=</span>SLOT<span>${small}</span>`,say:`${n} ${big} az hány ${small}?`,
+      hint:v=>v===n&&n!==ans?`A szám nem maradhat ugyanaz! A ${small} kisebb, mint a ${big}, ezért <b>több</b> darab kell belőle.`:(v*10===ans||v===ans*10)?`Majdnem! Egy nullával elcsúsztál. Nézd meg a lépcsőt: 1 ${big} = ${fmt(r)} ${small}.`:v<ans?`Ez kevés! Kisebb egységből <b>több</b> darab kell.`:`Ez sok. Számold meg újra a csíkokat!`,
+      help:done=>`${stairs(U[big].c,[big,small])}<div>Minden csík 1 ${big}, vagyis ${fmt(r)} ${small}.</div>${blocks(big,small,n)}<div>${n<=6?`${n} ${big} = ${Array(n).fill(fmt(r)).join(' + ')}`:`${n} × ${fmt(r)}`} = <b>${done?fmt(ans)+' '+small:'?'}</b></div>`};}
+  const given=n*r;
+  return{kind:'conv',key:`u${n}${big}${small}`,cat:U[big].c,input:'num',ans:n,
+    eq:`<span>${fmt(given)} ${small}</span><span>=</span>SLOT<span>${big}</span>`,say:`${given} ${small} az hány ${big}?`,
+    hint:v=>v===given&&given!==n?`A szám nem maradhat ugyanaz! A ${big} nagyobb egység, abból <b>kevesebb</b> darab kell.`:(v*10===n||v===n*10)?`Majdnem! Egy nullával elcsúsztál. 1 ${big} = ${fmt(r)} ${small}.`:v>n?`Ez sok! Nagyobb egységből <b>kevesebb</b> darab kell.`:`Ez kevés. Számolj ${STEP[r]||fmt(r)+'-asával'}, amíg el nem érsz ide: ${fmt(given)}!`,
+    help:done=>`${stairs(U[big].c,[big,small])}<div>1 ${big} = ${fmt(r)} ${small}. Hány ilyen csomag van ${fmt(given)} ${small}-${inn(small)}?</div>${n<=10?`<div>Számolj ${STEP[r]}:</div><div class="chips">${[...Array(n)].map((_,i)=>`<span>${fmt((i+1)*r)}</span>`).join('')}</div>${done?`<div>${n} lépés, vagyis <b>${n} ${big}</b></div>`:'<div>Hány lépés kellett?</div>'}`:`<div>${fmt(given)} : ${fmt(r)} = <b>${done?n:'?'}</b></div>`}`};
+}
+function genCmp(cats){
+  const p=pick(pairs(cats)),{big,small,r}=p,maxX=Math.max(1,Math.min(9,Math.floor(S.set.limit/r)));
+  const x=rand(1,maxX),X=x*r,step=Math.max(1,r/10);let y,t=Math.random();
+  if(t<.25)y=X;
+  else if(t<.7||X+step>S.set.limit){const cand=[];for(let v=step;v<X;v+=step)if(v>x)cand.push(v);y=cand.length?pick(cand):X;}
+  else{const mxk=Math.floor((S.set.limit-X)/step);y=X+rand(1,Math.min(mxk,9))*step;}
+  const A={t:`${x} ${big}`,v:X},B={t:`${fmt(y)} ${small}`,v:y};
+  const swap=Math.random()<.5,L=swap?B:A,Rr=swap?A:B;
+  const ans=L.v===Rr.v?'E':L.v>Rr.v?'L':'R';
+  const rel=X===y?`${fmt(X)} ${small} ugyanannyi, mint ${fmt(y)} ${small}. Egyformák!`:X>y?`${fmt(X)} ${small} több, mint ${fmt(y)} ${small}.`:`${fmt(y)} ${small} több, mint ${fmt(X)} ${small}.`;
+  return{kind:'cmp',key:`m${x}${big}${y}${small}`,cat:U[big].c,input:'cmp',ans,L,R:Rr,
+    say:`Melyik a több? ${L.t} vagy ${Rr.t}?`,
+    hint:v=>{const chosen=v==='L'?L:v==='R'?Rr:null;
+      if(chosen&&chosen===B&&y>x&&y<X)return`Vigyázz! A nagyobb <b>szám</b> nem mindig jelent többet. Váltsd át: ${x} ${big} hány ${small}?`;
+      if(v==='E')return`Nem egyformák! Váltsd át mindkettőt ugyanarra az egységre: ${small}.`;
+      return`Nézd meg jobban! Váltsd át: 1 ${big} = ${fmt(r)} ${small}.`;},
+    help:done=>done?`<div>${x} ${big} = <b>${fmt(X)} ${small}</b></div>${bars({v:X},{v:y},small,U[big].c)}<div>${rel}</div>`:`${stairs(U[big].c,[big,small])}<div>1 ${big} = ${fmt(r)} ${small}</div>`};
+}
+function genUnit(cats){
+  const o=pick(objsFor(cats)),c=o.c;
+  const others=Object.keys(CATS).filter(k=>k!==c).map(k=>{const us=unitsOf(k);const pref={h:'m',t:'kg',u:'l'}[k];return us.includes(pref)?pref:us[0];}).filter(Boolean);
+  const dimMode=others.length>0&&Math.random()<(cats.length>1?.5:.3);
+  let opts;
+  if(dimMode)opts=[o.u,...others];
+  else{const same=shuffle(unitsOf(c).filter(u=>u!==o.u));opts=[o.u,...same.slice(0,3)];}
+  if(opts.length<2){opts=[o.u,...others];}
+  const ch=shuffle(opts).map(u=>`${o.v} ${u}`),ans=`${o.v} ${o.u}`;
+  return{kind:'unit',key:`o${o.p}${o.u}${dimMode}`,cat:c,input:'choice',choices:ch,ans,pic:o.p,q:o.q,
+    say:`${o.q}... ${ch.join('... ')}.`,
+    hint:v=>{const u=v.split(' ')[1];
+      if(U[u].c!==c)return`A ${U[u].n} azt méri, ${CATS[U[u].c].what}. Itt viszont azt kérdezzük: ${o.q.toLowerCase()}`;
+      return U[u].f>U[o.u].f?`Az túl sok lenne! Gondolj bele: 1 ${u} kb. ${U[u].sh}.`:`Az túl kevés lenne! 1 ${u} csak ${U[u].sh}.`;},
+    help:done=>done?`<div style="display:flex;align-items:center;gap:10px;justify-content:center">${pic(U[o.u].pic).replace('class="pic ','style="width:70px;height:70px" class="pic ')}<span>1 ${o.u} kb. ${U[o.u].sh}.<br>${o.q.replace('?','')}: <b>kb. ${ans}</b></span></div>`:''};
+}
+function genRuler(){
+  const RR=R||{};
+  if(!RR.scq||!RR.scq.length)RR.scq=shuffle(Object.keys(SC).filter(sceneOk));
+  const id=RR.scq.pop()||'cm',sc=SC[id];
+  let it,len,opts,t=0;
+  do{it=pick(sc.items);len=pick(it.lens);opts=measureOptions(len,sc);}while(!opts.length&&++t<60);
+  const u=wpick(opts),f=U[u].f,ans=len/f;
+  let sh=0;if(sc.shift&&S.set.shift&&Math.random()<.5){sh=sc.shift(len);if(sh+len>sc.max||sh<0)sh=0;}
+  const N=it.n.charAt(0).toUpperCase()+it.n.slice(1),vert=sc.dir==='v';
+  const others=Object.keys(U).filter(x=>U[x].c==='h'&&on(x)&&len%U[x].f===0&&len/U[x].f>=1&&len/U[x].f<=10000);
+  return{kind:'ruler',key:`r${id}${it.o}${len}${u}${sh}`,cat:'h',input:'num',ans,sc:id,it,len,sh,u,
+    q:it.q,eq:`SLOT<span>${u}</span>`,say:`${it.q} Hány ${U[u].n}?`,
+    hint:v=>{
+      if(sh>0&&v===(sh+len)/f)return`Nézd meg, hol kezdődik ${it.n}! Nem a 0-nál indul, ezért nem elég leolvasni a végét.`;
+      for(const x of others){if(x!==u&&v===len/U[x].f){const [b,s]=U[x].f>f?[x,u]:[u,x];return`Ez ${U[x].n}ben lenne jó! Most viszont <b>${U[u].n}ben</b> kérdezzük. 1 ${b} = ${fmt(U[b].f/U[s].f)} ${s}.`;}}
+      if(sh>0&&v===ans+1)return`Majdnem! Ne a vonalakat számold, hanem a köztük lévő lépéseket.`;
+      return`${sc.legend} Számold meg a lépéseket ${it.n} ${vert?'aljától a tetejéig':'elejétől a végéig'}!`;},
+    help:done=>done?`<div>${N}: <b>${fmt(ans)} ${u}</b></div>${others.length>1?`<div style="margin-top:4px">Más egységgel is megmondhatjuk:</div><div class="chips">${others.slice().sort((a,b)=>U[b].f-U[a].f).map(x=>`<span>${fmt(len/U[x].f)} ${x}</span>`).join('<b>=</b>')}</div>`:''}`:`<div>${sc.legend}</div><div>Nézd meg a piros szaggatott vonalakat: hol kezdődik és hol végződik?</div>`};
+}
+
+/* ============ DOLGOZAT ============ */
+let T=null;
+const scrKey=(id,i)=>`${id}_${i}`;
+function dPair(cats,minR=10){const ps=pairs(cats).filter(p=>p.r>=minR);return ps.length?pick(ps):null;}
+function qtyStr(v,big,small,r){const a=Math.floor(v/r),b=v%r;return a&&b?`${a} ${big} ${fmt(b)} ${small}`:a?`${a} ${big}`:`${fmt(b)} ${small}`;}
+function dConv(cats,kind){
+  const p=dPair(cats);if(!p)return null;const {big,small,r}=p,L=S.set.limit,maxN=Math.floor(L/r);if(maxN<1)return null;
+  if(kind==='split'){if(r>=10&&maxN>=1){const a=rand(1,Math.min(9,maxN)),b=rand(1,r-1),v=a*r+b;if(v<=L)return{kind,cat:U[big].c,key:`s${v}${small}${big}`,parts:[`${fmt(v)} ${small}`],ops:[],blanks:[{u:big,ans:a},{u:small,ans:b}],
+      ex:`${fmt(v)} ${small} = ${fmt(a*r)} ${small} + ${fmt(b)} ${small} = <b>${a} ${big} ${fmt(b)} ${small}</b> (1 ${big} = ${fmt(r)} ${small})`,v,big,small,r};}return null;}
+  const n=rand(1,Math.min(maxN,r===10?20:9));
+  if(kind==='down')return{kind,cat:U[big].c,key:`d${n}${big}${small}`,parts:[`${n} ${big}`],ops:[],blanks:[{u:small,ans:n*r}],ex:`1 ${big} = ${fmt(r)} ${small}, ezért ${n} ${big} = ${n} × ${fmt(r)} = <b>${fmt(n*r)} ${small}</b>`,n,big,small,r};
+  return{kind:'up',cat:U[big].c,key:`u${n}${big}${small}`,parts:[`${fmt(n*r)} ${small}`],ops:[],blanks:[{u:big,ans:n}],ex:`1 ${big} = ${fmt(r)} ${small}. ${fmt(n*r)}-ban ${n}-szer van meg a ${fmt(r)}, ezért <b>${n} ${big}</b>`.replace(/(\d+)-ban (\d+)-szer van meg a (\d+)/,'$1 : $3 = $2'),n,big,small,r};
+}
+function dAdd(cats,sub){
+  const p=dPair(cats);if(!p)return null;const {big,small,r}=p,L=S.set.limit,maxA=Math.floor((L-1)/r);if(maxA<1)return null;
+  const a=rand(1,Math.min(9,maxA)),A=a*r;
+  let b=Math.random()<.6?rand(1,Math.min(r-1,L-A)):rand(1,Math.min(9,Math.floor((L-A)/Math.max(1,r/10))))*Math.max(1,r/10);
+  if(sub){b=Math.random()<.6?rand(1,Math.min(r-1,A-1)):rand(1,Math.max(1,Math.floor((A-1)/Math.max(1,r/10))))*Math.max(1,r/10);if(b>=A)b=A-1;if(b<1)return null;}
+  if(!sub&&A+b>L)return null;
+  const ans=sub?A-b:A+b,sw=!sub&&Math.random()<.35;
+  const parts=sw?[`${fmt(b)} ${small}`,`${a} ${big}`]:[`${a} ${big}`,`${fmt(b)} ${small}`];
+  return{kind:sub?'sub':'add',cat:U[big].c,key:`${sub?'-':'+'}${a}${big}${b}${small}${sw}`,parts,ops:[sub?'−':'+'],blanks:[{u:small,ans}],a,b,big,small,r,
+    ex:`Előbb váltsd át: ${a} ${big} = ${fmt(A)} ${small}. Utána: ${sw?`${fmt(b)} + ${fmt(A)}`:`${fmt(A)} ${sub?'−':'+'} ${fmt(b)}`} = <b>${fmt(ans)} ${small}</b>`};
+}
+function dOrder(cats){
+  const c=pick(cats),L=S.set.limit;
+  for(let t=0;t<200;t++){
+    const p=dPair([c]);if(!p)return null;const {big,small,r}=p;const us=unitsOf(c);
+    const mids=us.filter(u=>U[u].f>U[small].f&&U[u].f<U[big].f);
+    const maxA=Math.floor(L/r);if(maxA<1)continue;
+    const vals=new Map();let guard=0;
+    while(vals.size<6&&guard++<200){
+      const ty=pick(['big','small','mix','mix',mids.length?'mid':'small']);let v,txt;
+      if(ty==='big'){const a=rand(1,Math.min(9,maxA));v=a*r;txt=`${a} ${big}`;}
+      else if(ty==='small'){v=rand(Math.max(2,Math.floor(r/10)),Math.min(L,maxA*r+r-1));if(v>L)continue;txt=`${fmt(v)} ${small}`;}
+      else if(ty==='mix'){const a=rand(1,Math.min(9,maxA)),b=rand(1,r-1);v=a*r+b;if(v>L||r<10)continue;txt=`${a} ${big} ${fmt(b)} ${small}`;}
+      else{const m=pick(mids),fm=U[m].f/U[small].f,cc=rand(1,Math.min(99,Math.floor(Math.min(L,maxA*r+r)/fm)));v=cc*fm;if(v>L)continue;txt=`${cc} ${m}`;}
+      if(!vals.has(v))vals.set(v,txt);}
+    if(vals.size<5)continue;
+    const items=shuffle([...vals].map(([v,t],i)=>({id:'o'+i,v,t})));
+    const kinds=new Set(items.map(i=>i.t.replace(/[\d\s]/g,'')));if(kinds.size<2)continue;
+    return{cat:c,items,placed:[],small,dir:Math.random()<.5?'asc':'desc'};
+  }
+  return null;
+}
+function newTest(cats){
+  const lens={short:[4,1,3,1],normal:[8,2,6,2],long:[10,2,8,3]}[S.set.tlen||'normal'];
+  const [nc,ns,na,nsub]=lens;const items=[],keys=new Set();
+  const add=(f,n)=>{let t=0;while(n>0&&t++<300){const it=f();if(it&&!keys.has(it.key)){keys.add(it.key);items.push(it);n--;}}};
+  const cs=()=>[pick(cats)];
+  add(()=>dConv(cs(),pick(['down','down','up'])),nc-ns);
+  add(()=>dConv(cs(),'split'),ns);
+  const mix=[];add(()=>dAdd(cs(),false),na-nsub);add(()=>dAdd(cs(),true),nsub);
+  const conv=items.filter(i=>['down','up'].includes(i.kind)),rest=items.filter(i=>!['down','up'].includes(i.kind));
+  const all=[...shuffle(conv),...shuffle(rest)];all.forEach((it,i)=>{it.id='t'+i;it.val=it.blanks.map(()=> '');});
+  T={cats,items:all,order:dOrder(cats),graded:false,scr:{},name:(T&&T.name)||S.name||''};
+  view={s:'test'};render();
+}
+function scrHtml(id,i,cat){const k=scrKey(id,i),s=T.scr[k]||{};const dis=T.graded?'disabled':'';
+  return `<span class="scr"><input ${dis} inputmode="numeric" value="${s.v||''}" oninput="scrSet('${k}','v',this.value)" aria-label="mellékszámítás"><select ${dis} onchange="scrSet('${k}','u',this.value)"><option value=""></option>${allUnitsOf(cat).filter(on).map(u=>`<option ${s.u===u?'selected':''}>${u}</option>`).join('')}</select></span>`;}
+function scrSet(k,f,v){(T.scr[k]=T.scr[k]||{})[f]=v;}
+function qtyHtml(id,i,cat,txt){return `<span class="qt">${scrHtml(id,i,cat)}<span class="qv">${txt}</span></span>`;}
+function testRow(it,idx){
+  const st=T.graded?(it.ok?'ok':'bad'):'';
+  let left='';it.parts.forEach((p,i)=>{left+=qtyHtml(it.id,i,it.cat,p);if(it.ops[i])left+=`<span class="op">${it.ops[i]}</span>`;});
+  const blanks=it.blanks.map((b,j)=>`<span class="bl"><input class="ans ${T.graded?(String(+it.val[j])===String(b.ans)&&it.val[j]!==''?'ok':'bad'):''}" ${T.graded?'disabled':''} inputmode="numeric" value="${it.val[j]}" oninput="T.items[${idx}].val[${j}]=this.value.replace(/\\D/g,'')"><span class="bu">${b.u}</span></span>`).join('');
+  return `<div class="trow ${st}"><span class="tn">${idx+1}.</span><div class="texp">${left}<span class="op">=</span>${blanks}</div>
+   ${T.graded?`<div class="tfix">${it.ok?'✔️ Jó!':`✘ ${it.note?`<b>${it.note}</b><br>`:''}${it.ex}`}</div>`:''}</div>`;
+}
+function orderHtml(){
+  const o=T.order;if(!o)return '';const n=o.items.length;
+  const desc=o.dir==='desc',sorted=o.items.slice().sort((a,b)=>desc?b.v-a.v:a.v-b.v),rel=desc?' &gt; ':' &lt; ';
+  const left=o.items.map(it=>{const used=o.placed.includes(it.id);return `<div class="oitem ${used?'used':''}">${scrHtml('ord',it.id,o.cat)}<button ${T.graded||used?'disabled':''} onclick="oPlace('${it.id}')">${it.t}</button></div>`;}).join('');
+  const right=[...Array(n)].map((_,i)=>{const id=o.placed[i],it=o.items.find(x=>x.id===id);const ok=T.graded&&it&&it.id===sorted[i].id;
+    return `<button class="oslot ${T.graded?(ok?'ok':'bad'):''}" ${T.graded||!it?'disabled':''} onclick="oRemove(${i})"><span>${i+1}.</span>${it?it.t:''}</button>`;}).join('');
+  return `<div class="tsec"><h3>2. Rendezd a mennyiségeket <u>${desc?'csökkenő':'növekvő'}</u> sorrendbe!</h3><p class="tip">Koppints a bal oldali mennyiségekre a ${desc?'legnagyobbtól':'legkisebbtől'} kezdve. Ha tévedtél, koppints a jobb oldali helyre, és visszakerül.</p>
+   <div class="ogrid"><div><div class="ohead">Mennyiségek</div>${left}</div><div><div class="ohead">${desc?'Legnagyobbtól':'Legkisebbtől'} ↓</div>${right}</div></div>
+   ${T.graded?`<div class="tfix" style="margin-top:8px">${o.pts===o.max?'✔️ Hibátlan sorrend!':`A helyes sorrend:<br><b>${sorted.map(x=>x.t).join(rel)}</b><br><span style="color:var(--soft)">Ugyanez ${o.small}-${inn(o.small)}: ${sorted.map(x=>fmt(x.v)+' '+o.small).join(rel)}</span>`}</div>`:''}</div>`;
+}
+function oPlace(id){const o=T.order;if(!o.placed.includes(id)&&o.placed.length<o.items.length){o.placed.push(id);render();}}
+function oRemove(i){T.order.placed.splice(i,1);render();}
+function testV(){
+  const head=T.graded?`<div class="tgrade"><div class="jegy">${T.grade}</div><div><b>${T.gradeTxt}</b><br>${T.pts} / ${T.max} pont</div></div>`:'';
+  return `<div class="top"><button class="icon-btn" onclick="askLeaveTest()">✕</button><h2>📝 Mit tudok?</h2></div>
+  <div class="tpaper">
+   <div class="tname"><span>Név:</span><input value="${T.name}" ${T.graded?'disabled':''} oninput="T.name=this.value;S.name=this.value;save()"></div>
+   ${head}
+   <div class="tsec"><h3>1. Számold ki!</h3><p class="tip">A szürke kis mezőkbe a mennyiségek fölé mellékszámítást írhatsz: egy számot és mellé egy mértékegységet. Ezt nem javítjuk.</p>
+   ${T.items.map(testRow).join('')}</div>
+   ${orderHtml()}
+  </div>
+  ${T.graded?`<button class="big-btn" onclick="newTest(T.cats)">Új dolgozat 📝</button><button class="big-btn ghost" onclick="go('home')">Főmenü</button>`:`<button class="next" onclick="askSubmit()">Beadom ✋</button>`}`;
+}
+function askSubmit(){
+  const empty=T.items.filter(it=>it.val.some(v=>v==='')).length+(T.order&&T.order.placed.length<T.order.items.length?1:0);
+  if(!empty){gradeTest();return;}
+  modal(`Még ${empty} feladat nincs kész. Így is beadod?`,'Inkább folytatom','Beadom',()=>gradeTest());
+}
+function askLeaveTest(){if(T.graded){go('home');return;}modal('Kilépsz a dolgozatból? Amit eddig beírtál, elvész.','Maradok','Kilépek',()=>go('home'));}
+function modal(txt,no,yes,fn){const m=document.createElement('div');m.className='modal';m.innerHTML=`<div><p>${txt}</p><div class="row"><button>${no}</button><button class="dang">${yes}</button></div></div>`;
+  const b=m.querySelectorAll('button');b[0].onclick=()=>m.remove();b[1].onclick=()=>{m.remove();fn();};document.body.appendChild(m);}
+function gradeTest(){
+  let pts=0,max=0;
+  T.items.forEach(it=>{max++;it.ok=it.blanks.every((b,j)=>it.val[j]!==''&&+it.val[j]===b.ans);if(it.ok)pts++;
+    const v=+it.val[0];it.note='';
+    if(!it.ok&&it.val[0]!==''){
+      if((it.kind==='add'||it.kind==='sub')&&(v===(it.kind==='add'?it.a+it.b:Math.abs(it.a-it.b))))it.note='A két számot nem lehet egyből összeadni vagy kivonni, mert más a mértékegységük!';
+      else if(it.kind==='down'&&v===it.n)it.note='A szám nem maradhat ugyanaz: kisebb egységből több kell.';
+      else if(it.kind==='up'&&v===it.n*it.r)it.note='A szám nem maradhat ugyanaz: nagyobb egységből kevesebb kell.';
+      else if(it.kind==='up'&&v>it.n*it.r)it.note='Fordítva váltottál! Nagyobb egységből kevesebb kell.';
+      else if(it.kind==='down'&&v<it.n)it.note='Fordítva váltottál! Kisebb egységből több kell.';
+      else if(v*10===it.blanks[0].ans||v===it.blanks[0].ans*10)it.note='Egy nullával elcsúsztál.';
+    }});
+  if(T.order){const o=T.order,sorted=o.items.slice().sort((a,b)=>o.dir==='desc'?b.v-a.v:a.v-b.v);const good=o.placed.filter((id,i)=>sorted[i]&&sorted[i].id===id).length;
+    o.max=3;o.pts=good===o.items.length?3:good>=o.items.length-2?Math.min(2,Math.floor(3*good/o.items.length)):Math.floor(3*good/o.items.length);max+=3;pts+=o.pts;}
+  const p=pts/max;T.grade=p>=.9?5:p>=.75?4:p>=.55?3:p>=.4?2:1;
+  T.gradeTxt={5:'Jeles! Szuper munka! 🏆',4:'Jó! Ügyes vagy!',3:'Közepes. Gyakorolj még egy kicsit!',2:'Elégséges. Gyakorolj még!',1:'Gyakorolj még! Nézd át a javítást.'}[T.grade];
+  T.pts=pts;T.max=max;T.graded=true;S.stars+=pts;S.best.test=Math.max(S.best.test||0,T.grade);save();render();if(T.grade>=4)confetti();
+  say(`${T.gradeTxt.replace(/[^\p{L}\s!.,]/gu,'')} ${pts} pontot szereztél.`);
+}
+
+/* ============ PÉNZ ÉS HELYIÉRTÉK ============ */
+const DEN=[20000,10000,5000,2000,1000,500,200,100,50,20,10,5];
+const NOTE_COL={500:'#d9776b',1000:'#6f9fd8',2000:'#b58a63',5000:'#a98bd4',10000:'#7fb36f',20000:'#7f97b5'};
+const COIN={5:[15,'#e8c15a','#e8c15a'],10:[17,'#c9ced9','#c9ced9'],20:[18,'#e8c15a','#e8c15a'],50:[19,'#c9ced9','#c9ced9'],100:[21,'#e8c15a','#c9ced9'],200:[22,'#c9ced9','#e8c15a']};
+function moneySVG(v,sc=1){
+  if(v>=500){const c=NOTE_COL[v],w=96*sc,h=48*sc;return `<svg width="${w}" height="${h}" viewBox="0 0 96 48"><rect x="1" y="1" width="94" height="46" rx="5" fill="${c}" stroke="rgba(0,0,0,.25)"/><rect x="6" y="6" width="84" height="36" rx="3" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.5"/><circle cx="24" cy="24" r="11" fill="rgba(255,255,255,.35)"/><text x="62" y="29" text-anchor="middle" font-size="${v>=10000?15:17}" font-weight="900" fill="#fff">${fmt(v)}</text><text x="62" y="40" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">FORINT</text></svg>`;}
+  const [r,ring,cen]=COIN[v],d=(r*2+2)*sc;return `<svg width="${d}" height="${d}" viewBox="0 0 ${r*2+2} ${r*2+2}"><circle cx="${r+1}" cy="${r+1}" r="${r}" fill="${ring}" stroke="rgba(0,0,0,.3)"/><circle cx="${r+1}" cy="${r+1}" r="${v>=100?r*.68:r*.82}" fill="${cen}" stroke="rgba(0,0,0,.12)"/><text x="${r+1}" y="${r+1+(v>=100?5:5)}" text-anchor="middle" font-size="${v>=100?13:14}" font-weight="900" fill="#4a4030">${v}</text></svg>`;
+}
+const PV=[10000,1000,100,10,1],PVN={10000:'tízezres',1000:'ezres',100:'százas',10:'tízes',1:'egyes'},PVC={10000:'#b5651d',1000:'#9b86d9',100:'#5b9bd5',10:'#43a861',1:'#ef9a4a'};
+const digitsOf=n=>{const o={};let m=n;PV.forEach(p=>{o[p]=Math.floor(m/p);m%=p;});return o;};
+function pvTable(rows,maxN){const cols=PV.filter(p=>p<=Math.max(maxN,1)&&(p<10000||maxN>=10000));
+  return `<table class="pvt"><tr><th></th>${cols.map(p=>`<th style="color:${PVC[p]}">${PVN[p]}</th>`).join('')}</tr>${rows.map(r=>`<tr><td>${r.l}</td>${cols.map(p=>`<td style="color:${PVC[p]}">${r.raw?(r.raw[p]||0):(r.n==null?'':digitsOf(r.n)[p])}</td>`).join('')}</tr>`).join('')}</table>`;}
+const BLK={
+  1:`<svg width="11" height="11" viewBox="0 0 11 11"><rect x=".5" y=".5" width="10" height="10" fill="#ef9a4a" stroke="#a85f1d"/></svg>`,
+  10:`<svg width="11" height="92" viewBox="0 0 11 92"><rect x=".5" y=".5" width="10" height="91" fill="#43a861" stroke="#236b3a"/>${[...Array(9)].map((_,i)=>`<line x1="0" x2="11" y1="${9.6+i*9.1}" y2="${9.6+i*9.1}" stroke="#236b3a" stroke-width=".7"/>`).join('')}</svg>`,
+  100:`<svg width="64" height="64" viewBox="0 0 64 64"><rect x=".5" y=".5" width="63" height="63" fill="#5b9bd5" stroke="#2f5f8f"/>${[...Array(9)].map((_,i)=>`<line x1="${6.8+i*6.3}" x2="${6.8+i*6.3}" y1="0" y2="64" stroke="#2f5f8f" stroke-width=".6"/><line y1="${6.8+i*6.3}" y2="${6.8+i*6.3}" x1="0" x2="64" stroke="#2f5f8f" stroke-width=".6"/>`).join('')}</svg>`,
+  1000:`<svg width="78" height="78" viewBox="0 0 78 78"><polygon points="2,18 18,2 76,2 60,18" fill="#b9a7e6" stroke="#5b4a9a"/><polygon points="60,18 76,2 76,60 60,76" fill="#7d68c4" stroke="#5b4a9a"/><rect x="2" y="18" width="58" height="58" fill="#9b86d9" stroke="#5b4a9a"/>${[...Array(9)].map((_,i)=>`<line x1="${7.8+i*5.8}" x2="${7.8+i*5.8}" y1="18" y2="76" stroke="#5b4a9a" stroke-width=".5"/><line y1="${23.8+i*5.8}" y2="${23.8+i*5.8}" x1="2" x2="60" stroke="#5b4a9a" stroke-width=".5"/>`).join('')}</svg>`
+};
+function blocksHtml(cnt){return `<div class="dien">${[1000,100,10,1].filter(p=>cnt[p]>0).map(p=>`<div class="dgrp">${Array(cnt[p]).fill(BLK[p]).join('')}</div>`).join('')}</div>`;}
+const BLKN={1000:'nagy kocka',100:'lap',10:'rúd',1:'kis kocka'};
+function moneyLimit(){return Math.min(S.set.limit,10000);}
+function denomsOK(){return DEN.filter(d=>d<=moneyLimit());}
+function greedy(a){const o=[];for(const d of DEN){while(a>=d){o.push(d);a-=d;}}return o;}
+function niceAmount(){const L=moneyLimit();let A;
+  if(L<=100)A=rand(3,20)*5;
+  else{const top=L>=10000?1000:100,maxTop=Math.floor(L/top)-(L>=10000?0:0);
+    for(;;){const parts=[rand(1,Math.min(9,maxTop))*top];let rest=top/10;while(rest>=10){parts.push((Math.random()<.25?0:rand(1,9))*rest);rest/=10;}parts.push(Math.random()<.5?5:0);A=parts.reduce((a,b)=>a+b,0);if(A<=L&&A>=15)break;}}
+  return A;}
+function genPay(){
+  const A=niceAmount(),best=greedy(A);
+  return{kind:'pay',key:'p'+A,cat:'p',input:'pay',ans:A,say:`Fizess ki ${A} Ft-ot!`,
+    okMsg:()=>R.pay.length===best.length?'Ráadásul a lehető legkevesebb pénzzel! 👏':`Jó lett! De kevesebb darabbal is ki lehetett volna fizetni: ${best.length} darab elég.`,
+    hint:v=>v<A?`Ez kevés! Még kell valami a pultra. Nézd meg a táblázatot: hány ezres, hány százas, hány tízes kell?`:`Ez sok! Vegyél el valamit a pultról (koppints rá).`,
+    help:done=>done?`<div>Így lehet a legkevesebb pénzzel:</div><div class="mrow">${best.map(d=>moneySVG(d,.8)).join('')}</div><div>${best.map(fmt).join(' + ')} = <b>${fmt(A)} Ft</b></div>`
+      :`${pvTable([{l:'Kell',n:A},{l:'A pulton',n:R.pay.reduce((a,b)=>a+b,0)}],A)}`};
+}
+function genCount(){
+  const L=moneyLimit(),ds=denomsOK();let pcs,A;
+  for(;;){const k=rand(3,7);pcs=[];for(let i=0;i<k;i++)pcs.push(pick(ds.filter(d=>d<=L/2||Math.random()<.2)));A=pcs.reduce((a,b)=>a+b,0);if(A<=L)break;}
+  const shown=Math.random()<.5?pcs.slice().sort((a,b)=>b-a):shuffle(pcs),sorted=pcs.slice().sort((a,b)=>b-a);
+  let run=0;const chain=sorted.map(d=>{run+=d;return fmt(run);});
+  return{kind:'count',key:'c'+pcs.join('-'),cat:'p',input:'num',ans:A,pcs:shown,say:'Mennyi pénz van itt? Add össze!',
+    eq:`SLOT<span>Ft</span>`,
+    hint:v=>v>A?`Ez sok. Számold össze újra, kezdd a legnagyobbal!`:`Ez kevés. Lehet, hogy kimaradt valami? Kezdd a legnagyobbal, és haladj lefelé!`,
+    help:done=>`<div>Rakd sorba nagyság szerint, és add hozzá egyenként:</div><div class="mrow">${sorted.map(d=>moneySVG(d,d>=500?.7:.95)).join('')}</div>${done?`<div class="chips">${chain.map(c=>`<span>${c}</span>`).join('→')}</div><div>Összesen: <b>${fmt(A)} Ft</b></div>`:''}`};
+}
+function niceNumber(){const L=moneyLimit();const top=L<=100?10:L<=1000?100:1000;let n=rand(1,9)*top,p=top/10;while(p>=1){n+=(Math.random()<.3?0:rand(1,9))*p;p/=10;}return n;}
+function genBuild(){
+  const N=niceNumber(),d=digitsOf(N);
+  if(Math.random()<.5){
+    return{kind:'build',key:'b'+N,cat:'p',input:'build',ans:N,say:`Rakd ki ezt a számot: ${N}!`,
+      okMsg:()=>[1000,100,10,1].every(p=>R.bld[p]===d[p])?'':'Ez is jó, ugyanannyi! De ahol 10 darab van egyből, azt be lehet cserélni 1 nagyobbra.',
+      hint:v=>{const w=[1000,100,10,1].filter(p=>R.bld[p]!==d[p]&&(p<=N));const p=w[0];
+        if(p==null)return 'Számold meg újra!';return `Nézd meg a ${{1000:'nagy kockákat',100:'lapokat',10:'rudakat',1:'kis kockákat'}[p]} (${PVN[p]}): ${d[p]} kell, neked ${R.bld[p]} van.`;},
+      help:done=>pvTable([{l:'Kell',n:N},{l:'Kiraktad',n:null,raw:R.bld}],N)};
+  }
+  let cnt={...d};
+  if(N%100>=10&&Math.random()<.25){cnt=Object.assign({},d);if(cnt[100]>0){cnt[100]--;cnt[10]+=10;}}
+  const noZero=String(N).replace(/0/g,'');
+  return{kind:'read',key:'r'+N+JSON.stringify(cnt),cat:'p',input:'num',ans:N,cnt,say:'Melyik számot raktuk ki? Számold meg!',eq:`SLOT`,
+    hint:v=>String(v)===noZero&&noZero!==String(N)?'Vigyázz a nullára! Ahol nincs egy darab sem, oda 0-t kell írni.':cnt[10]>9?'Figyelj: 10 rúd ugyanannyi, mint 1 lap! Számold össze helyiértékenként.':'Számold meg külön a nagy kockákat, a lapokat, a rudakat és a kis kockákat!',
+    help:done=>done?`${pvTable([{l:'Darab',n:null,raw:{...cnt,10000:0}}],N)}<div>${[1000,100,10,1].filter(p=>cnt[p]).map(p=>`${cnt[p]} × ${p}`).join(' + ')} = <b>${fmt(N)}</b></div>`
+      :`<div>${[1000,100,10,1].map(p=>`<span style="color:${PVC[p]};font-weight:900">${BLKN[p]} = ${p}</span>`).join(' · ')}</div>`};
+}
+function payAdd(v){if(R.done||R.pay.length>=30)return;R.pay.push(v);render();}
+function payDel(i){if(R.done)return;R.pay.splice(i,1);render();}
+function bAdd(p,d){if(R.done)return;R.bld[p]=Math.max(0,Math.min(19,R.bld[p]+d));render();}
+function moneyV(){
+  const M=[['pay','💰','Fizesd ki!','Rakd a pultra a pontos összeget bankjegyekkel és érmékkel.'],['count','🧮','Mennyi pénz van itt?','Számold össze a pénzt!'],['build','🧱','Rakd ki a számot!','Egyesek, tízesek, százasok, ezresek kockákkal.'],['decomp','🃏','Számbontás','Kártyákból rakd össze a számot! Mennyit ér egy számjegy?']];
+  return `<div class="top"><button class="icon-btn" onclick="go('home')">←</button><h2>💰 Pénz és helyiérték</h2></div>
+  <div class="cats">${M.map(([k,e,n,d])=>`<button class="cat" onclick="newRound('${k}',['p'])" style="border-left:8px solid var(--star)"><span style="font-size:46px;width:70px;text-align:center">${e}</span><div><b>${n}</b><span>${d}</span>${S.best[k]!=null?`<br><span>Legjobb: ${S.best[k]} ⭐</span>`:''}</div></button>`).join('')}</div>
+  <div class="cat" style="border-left:8px solid var(--star);margin-top:12px;flex-wrap:wrap"><span style="font-size:46px;width:70px;text-align:center">🎲</span><div style="flex:1"><b>Csere-bere verseny</b><span>Dobj, gyűjts kockákat, és 10-et cserélj 1 nagyobbra! Ki ér előbb a célba: te vagy Robi?</span><div style="display:flex;gap:8px;margin-top:8px"><button class="big-btn" style="margin:0;padding:10px;font-size:17px" onclick="newRace(100)">100-ig</button><button class="big-btn" style="margin:0;padding:10px;font-size:17px" onclick="newRace(1000)">1000-ig</button></div></div></div>
+  <p style="color:var(--soft);font-size:14px;margin-top:14px">A számok nagysága a beállításokban, a Számkörnél állítható (100-ig, 1000-ig vagy 10 000-ig).</p>`;
+}
+
+/* ---- Számbontás ---- */
+const DSUF={1:'es',2:'es',3:'as',4:'es',5:'ös',6:'os',7:'es',8:'as',9:'es'};
+const PVPL={1000:'ezresek',100:'százasok',10:'tízesek',1:'egyesek'};
+function placesFor(){const L=moneyLimit();const top=L<=100?10:L<=1000?100:1000;return [1000,100,10,1].filter(p=>p<=top);}
+function stackHtml(sel,big){const cards=Object.keys(sel).map(Number).filter(p=>sel[p]>0).sort((a,b)=>b-a);
+  if(!cards.length)return `<div class="stackwrap"><span style="color:var(--soft)">Válassz kártyákat!</span></div>`;
+  return `<div class="stackwrap"><div class="stack" style="font-size:${big?44:34}px;width:calc(${String(sel[cards[0]]*cards[0]).length}ch + 10px)">${cards.map(p=>`<span class="scard" style="border-color:${PVC[p]};color:${PVC[p]}">${sel[p]*p}</span>`).join('')}</div></div>`;}
+function genDecomp(){
+  const N=niceNumber(),d=digitsOf(N),pl=placesFor(),nz=pl.filter(p=>d[p]>0);
+  const parts=nz.map(p=>d[p]*p),ex=parts.map(fmt).join(' + ');
+  const t=Math.random();
+  if(t<.38)return{kind:'cards',key:'k'+N,cat:'p',input:'cards',ans:N,say:`Rakd ki kártyákból ezt a számot: ${N}!`,pl,
+    hint:v=>{const p=pl.find(p=>(R.cards[p]||0)!==d[p]);if(p==null)return 'Nézd meg újra!';
+      return d[p]===0?`A ${PVPL[p]} helyén 0 áll, ezért abból a sorból ne válassz kártyát!`:`Nézd meg a ${PVPL[p]} helyén álló számjegyet: ${d[p]}. Melyik kártya ér ennyit?`;},
+    help:done=>done?`${stackHtml(Object.fromEntries(pl.map(p=>[p,d[p]])),false)}<div>${fmt(N)} = ${ex}</div>`:pvTable([{l:'A szám',n:N}],N)};
+  if(t<.72){const sh=Math.random()<.3?shuffle(parts):parts,noZero=String(N).replace(/0/g,'');
+    return{kind:'expand',key:'e'+N+sh.join(),cat:'p',input:'num',ans:N,say:`${sh.join(' + ')}, az mennyi?`,eq:`<span style="font-size:24px">${sh.map(fmt).join(' + ')}</span><span>=</span>SLOT`,
+      hint:v=>String(v)===noZero&&noZero!==String(N)?`Vigyázz! Ahol nincs kártya, oda 0 kerül. Nézd meg, melyik helyiérték hiányzik!`:`Tedd egymásra a kártyákat gondolatban: a nagyobbtól a kisebbig!`,
+      help:done=>done?`${stackHtml(Object.fromEntries(pl.map(p=>[p,d[p]])),false)}<div>Egymásra téve a kártyák: <b>${fmt(N)}</b></div>${pvTable([{l:'',n:N}],N)}`:`<div>${sh.map(v=>{const q=pl.find(q=>v>=q);return `${fmt(v)} → <b style="color:${PVC[q]}">${v/q} ${PVN[q]}</b>`;}).join('<br>')}</div><div style="color:var(--soft);margin-top:4px">Melyik helyiérték hiányzik? Oda 0 kerül!</div>`};}
+  const p=pick(nz),dg=d[p],str=String(N),pos=str.length-1-Math.round(Math.log10(p));
+  const hl=str.split('').map((c,i)=>i===pos?`<u style="color:var(--bad)">${c}</u>`:c).join('');
+  const ch=pl.map(q=>fmt(dg*q));
+  return{kind:'val',key:'v'+N+p,cat:'p',input:'choice',choices:ch,ans:fmt(dg*p),num:hl,say:`Mennyit ér a piros ${['','egyes','kettes','hármas','négyes','ötös','hatos','hetes','nyolcas','kilences'][dg]} ebben a számban: ${N}?`,
+    q:`Mennyit ér a piros ${dg}-${DSUF[dg]}?`,
+    hint:v=>`A piros ${dg}-${DSUF[dg]} a ${PVPL[p]} helyén áll. Számold meg, hányadik helyen van jobbról!`,
+    help:done=>done?`${pvTable([{l:'',n:N}],N)}<div>A ${PVPL[p]} helyén álló ${dg} <b>${fmt(dg*p)}</b>-t ér.</div>`:''};
+}
+function cPick(p,k){if(R.done)return;R.cards[p]=R.cards[p]===k?0:k;render();}
+/* ---- Csere-bere verseny ---- */
+let G=null;
+const DIE=n=>`<svg width="46" height="46" viewBox="0 0 46 46"><rect x="2" y="2" width="42" height="42" rx="9" fill="#fff" stroke="#3b3450" stroke-width="2.5"/>${({1:[[23,23]],2:[[13,13],[33,33]],3:[[12,12],[23,23],[34,34]],4:[[13,13],[33,13],[13,33],[33,33]],5:[[12,12],[34,12],[23,23],[12,34],[34,34]],6:[[13,11],[33,11],[13,23],[33,23],[13,35],[33,35]]})[n].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="4.2" fill="#3b3450"/>`).join('')}</svg>`;
+const gTot=b=>[1000,100,10,1].reduce((a,p)=>a+(b[p]||0)*p,0);
+function newRace(target){G={target,me:{1000:0,100:0,10:0,1:0},bot:{1000:0,100:0,10:0,1:0},turn:'me',dice:null,msg:`Dobj a kockával! Aki előbb eléri ${target===100?'a 100-at':'az 1000-et'}, nyer.`,ask:null,inp:'',myTurns:0,winner:null,stars:0,phase:'roll'};view={s:'race'};render();}
+function needEx(b,target){return [1,10,100].filter(p=>p*10<=target&&b[p]>=10);}
+function rollDice(){return G.target>100?[rand(1,6),rand(1,6)]:[rand(1,6),rand(1,6)];}
+function addRoll(b,d){if(G.target>100){b[10]+=d[0];b[1]+=d[1];}else{b[1]+=d[0]+d[1];}}
+function rollMe(){if(G.turn!=='me'||G.phase!=='roll'||G.winner)return;
+  G.dice=rollDice();addRoll(G.me,G.dice);G.myTurns++;
+  const got=G.target>100?`${G.dice[0]} rudat és ${G.dice[1]} kis kockát kaptál.`:`${G.dice[0]+G.dice[1]} kis kockát kaptál.`;
+  G.msg=got;afterMove(got);}
+function afterMove(pre){
+  const ex=needEx(G.me,G.target);
+  if(ex.length){const p=ex[0];G.phase='exchange';G.msg=`${pre?pre+' ':''}Már ${G.me[p]} ${{1:'kis kockád',10:'rudad',100:'lapod'}[p]} van! 10 darabot cserélj be 1 ${{10:'rúdra',100:'lapra',1000:'nagy kockára'}[p*10]}: koppints a Csere gombra!`;render();say(G.msg);return;}
+  if(gTot(G.me)>=G.target){G.winner='me';G.stars+=3;S.stars+=3;save();G.msg=`Elérted ${G.target===100?'a 100-at':'az 1000-et'}! Te nyertél! 🏆`;render();confetti();say('Te nyertél! Szuper!');return;}
+  if(G.myTurns%3===0&&!G.asked){G.asked=true;G.phase='ask';G.inp='';G.msg=`${pre?pre+' ':''}Mennyi kockád van most összesen?`;render();say('Mennyi kockád van most összesen?');return;}
+  G.asked=false;G.phase='wait';G.turn='bot';render();if(pre)say(pre);setTimeout(botTurn,1600);}
+function doEx(p){if(G.me[p]<10)return;G.me[p]-=10;G.me[p*10]++;afterMove('');}
+function askKey(k){if(G.phase!=='ask')return;if(k==='del')G.inp=G.inp.slice(0,-1);else if(k==='ok'){if(G.inp==='')return;const v=+G.inp,t=gTot(G.me);
+  if(v===t){G.stars++;S.stars++;save();G.msg=`Pontosan, ${t}! Jutalmad 1 csillag! ⭐`;say(`Pontosan, ${t}! Jutalmad 1 csillag!`);}else{G.msg=`Nem egészen: ${t} kockád van. Nézd a táblázatot!`;G.showPv=true;say(`Nem egészen. ${t} kockád van.`);}
+  G.phase='wait';G.turn='bot';render();setTimeout(botTurn,2400);return;}else if(G.inp.length<5)G.inp+=k;render();}
+function botTurn(){if(G.winner||view.s!=='race')return;G.showPv=false;
+  const d=rollDice();addRoll(G.bot,d);let ex;while((ex=needEx(G.bot,G.target)).length){G.bot[ex[0]]-=10;G.bot[ex[0]*10]++;}
+  G.botDice=d;
+  if(gTot(G.bot)>=G.target){G.winner='bot';G.msg=`Robi elérte ${G.target===100?'a 100-at':'az 1000-et'}. Most ő nyert. Próbáld újra!`;render();say('Most Robi nyert. Próbáld újra!');return;}
+  G.turn='me';G.phase='roll';G.msg='Te jössz! Dobj!';render();}
+function raceV(){
+  if(!G)return '';const t=G.target,pl=[1000,100,10,1].filter(p=>p<=t);const me=gTot(G.me),bo=gTot(G.bot);
+  const bar=(v,c)=>`<div class="rbar"><i style="width:${Math.min(100,100*v/t)}%;background:${c}"></i></div>`;
+  return `<div class="top"><button class="icon-btn" onclick="go('money')">✕</button><h2>🎲 Csere-bere ${t}-ig</h2><span class="pill">⭐ ${S.stars}</span></div>
+  <div class="rbot">🤖 <b>Robi</b> ${G.botDice?`<span style="color:var(--soft);font-size:13px">(dobott: ${G.botDice.join(' és ')})</span>`:''}<span style="flex:1"></span>${pl.map(p=>`<span style="color:${PVC[p]};font-weight:900">${G.bot[p]}</span>`).join(' ')}</div>${bar(bo,'#b9a7e6')}
+  <div class="qcard" style="margin-top:10px;border-top:8px solid var(--star);padding:12px 8px">
+   <div style="font-weight:900">Te ${G.showPv||G.winner?`– ${me}`:''}</div>${bar(me,'var(--star)')}
+   ${blocksHtml(G.me)}
+   <div class="bctl" style="grid-template-columns:repeat(${pl.length},1fr)">${pl.map(p=>`<div><b style="color:${PVC[p]}">${BLKN[p]}</b><div class="n" style="color:${PVC[p]}">${G.me[p]}</div>${p<t&&G.me[p]>=10&&G.phase==='exchange'?`<button class="cserebtn" onclick="doEx(${p})">Csere! ↑</button>`:''}</div>`).join('')}</div>
+   ${G.showPv?pvTable([{l:'Neked',n:me}],t):''}
+  </div>
+  <div class="fb ${G.winner==='me'?'ok':G.phase==='exchange'?'try':'show'}" style="text-align:center">${G.dice&&G.turn==='me'&&G.phase!=='roll'?`<div class="mrow">${G.dice.map(DIE).join('')}</div>`:''}${G.msg}</div>
+  ${G.phase==='ask'?`<div class="qeq"><span class="slot">${G.inp||'?'}</span></div><div class="pad">${[1,2,3,4,5,6,7,8,9].map(d=>`<button onclick="askKey('${d}')">${d}</button>`).join('')}<button class="del" onclick="askKey('del')">⌫</button><button onclick="askKey('0')">0</button><button class="go" onclick="askKey('ok')">✓</button></div>`:''}
+  ${G.winner?`<button class="big-btn" onclick="newRace(${t})">Új verseny 🎲</button>`:G.phase==='roll'?`<button class="okbtn" onclick="rollMe()">Dobok! 🎲</button>`:G.turn==='bot'?`<div style="text-align:center;color:var(--soft);margin-top:10px">Robi dob…</div>`:''}
+  <p style="color:var(--soft);font-size:13px;margin-top:14px">${t>100?'Az egyik kocka rudakat (tízeseket), a másik kis kockákat (egyeseket) ad.':'A két kocka összegével annyi kis kockát kapsz.'} Ha valamiből 10 összegyűlt, be kell cserélni 1 nagyobbra. Minden harmadik körben megkérdezem, mennyi kockád van.</p>`;
+}
+
+/* ============ KÉPERNYŐK ============ */
+const ACTS={
+  learn:{em:'📖',n:'Ismerd meg!',d:'Mekkora 1 cm, 1 kg, 1 l? Rajzokkal.'},
+  unit:{em:'🤔',n:'Mivel mérnéd?',d:'Milyen hosszú egy busz? 12 cm vagy 12 m?'},
+  conv:{em:'🔁',n:'Váltsd át!',d:'3 m = ? cm'},
+  cmp:{em:'⚖️',n:'Melyik a több?',d:'3 m vagy 250 cm?'},
+  ruler:{em:'📏',n:'Mérd meg!',d:'Vonalzó, mérőszalag, kilométerkő'},
+  test:{em:'📝',n:'Dolgozat',d:'Mit tudok? Átváltás, összeadás, sorba rendezés.'}
+};
+let lastScreen='';
+function render(){
+  const a=$('#app');
+  if(view.s==='home')a.innerHTML=homeV();
+  else if(view.s==='cats')a.innerHTML=catsV();
+  else if(view.s==='learn')a.innerHTML=learnV();
+  else if(view.s==='quiz')a.innerHTML=quizV();
+  else if(view.s==='result')a.innerHTML=resultV();
+  else if(view.s==='set')a.innerHTML=setV();
+  else if(view.s==='test')a.innerHTML=testV();
+  else if(view.s==='money')a.innerHTML=moneyV();
+  else if(view.s==='race')a.innerHTML=raceV();
+  const sk=(view.s==='race'?'race'+(G&&G.target):view.s)+'|'+(view.cat||view.act||'')+'|'+(view.s==='quiz'&&R?R.i+'/'+R.act:'')+'|'+(view.s==='test'&&T?T.graded+'/'+T.items.length+T.items[0].key:'');
+  if(sk!==lastScreen){window.scrollTo(0,0);lastScreen=sk;}
+  if(view.s==='learn')initCarousel();
+}
+function homeV(){
+  return `<div class="top"><h1>Mértékegység-kaland</h1><span class="pill" id="hstat" style="font-size:12px;box-shadow:none;background:none">${BERTA.state==='loading'?'🔊 '+BERTA.pct+'%':''}</span><span class="pill">⭐ ${S.stars}</span><button class="icon-btn" onclick="go('set')" aria-label="Beállítások">⚙️</button></div>
+  <div class="hello">${pic('vonalzo')}<p>Mérjünk együtt! Milyen hosszú? Milyen nehéz? Mennyi fér bele? Minden jó válasz egy csillag.</p></div>
+  <div class="tiles">
+   <button class="tile wide" onclick="startAct('learn')">${pic('gitar')}<div><b>${ACTS.learn.em} ${ACTS.learn.n}</b><br><span>${ACTS.learn.d}</span></div></button>
+   ${['unit','conv','cmp','ruler'].map(k=>`<button class="tile" onclick="startAct('${k}')"><span class="em">${ACTS[k].em}</span><b>${ACTS[k].n}</b><span>${ACTS[k].d}</span>${S.best[k]!=null?`<span>Legjobb: ${S.best[k]} ⭐</span>`:''}</button>`).join('')}
+   <button class="tile wide" onclick="go('money')"><span class="em">💰</span><div><b>Pénz és helyiérték</b><br><span>Fizesd ki! Rakd ki a számot! Számbontás, csere-bere verseny.</span></div></button>
+   <button class="tile wide" onclick="startAct('test')"><span class="em">📝</span><div><b>${ACTS.test.n}</b><br><span>${ACTS.test.d}</span>${S.best.test?`<br><span>Legjobb jegy: ${S.best.test}</span>`:''}</div></button>
+  </div>`;
+}
+function catsV(){
+  const act=view.act,list=['h','t','u'];
+  const okAll=list.filter(c=>catOk(act,c));
+  return `<div class="top"><button class="icon-btn" onclick="go('home')">←</button><h2>${ACTS[act].em} ${ACTS[act].n}</h2></div>
+  <p style="font-size:18px;margin:0 0 12px">Mit gyakoroljunk?</p>
+  <div class="cats">${list.map(c=>{const C=CATS[c],ok=catOk(act,c);return `<button class="cat" ${ok?'':'disabled'} onclick="pickCat('${c}')" style="border-left:8px solid ${C.col}">${pic(C.ic)}<div><b>${C.n}</b><span>${allUnitsOf(c).filter(on).reverse().join(', ')}</span></div></button>`}).join('')}
+  ${act!=='learn'&&okAll.length>1?`<button class="cat" onclick="pickCat('mix')" style="border-left:8px solid var(--x)"><span style="font-size:46px;width:70px;text-align:center">🎲</span><div><b>Vegyes</b><span>Mindenből egy kicsit</span></div></button>`:''}</div>`;
+}
+function go(s){view={s};render();}
+function startAct(act){if(act==='ruler'){newRound('ruler',['h']);return;}view={s:'cats',act};render();}
+function pickCat(c){const act=view.act;if(act==='learn'){view={s:'learn',cat:c,i:0};render();return;}
+  const cats=c==='mix'?['h','t','u'].filter(k=>catOk(act,k)):[c];if(act==='test'){newTest(cats);return;}newRound(act,cats);}
+
+/* --- Ismerd meg --- */
+function learnCards(cat){
+  const C=CATS[cat],cards=[];
+  cards.push({pic:C.ic,u:C.n,n:'',p:`Azt mutatja meg, <b>${C.what}</b>. ${C.tool}`,p2:C.extra,extraPics:cat==='t'?['lufi','kavics']:null,say:`${C.n}. Azt mutatja meg, ${C.what}. ${C.tool} ${C.extra}`});
+  allUnitsOf(cat).slice().reverse().filter(on).forEach(u=>{
+    const rel=allUnitsOf(cat).filter(v=>U[v].f<U[u].f&&on(v)&&U[u].f/U[v].f<=1000).map(v=>`1 ${u} = ${fmt(U[u].f/U[v].f)} ${v}`);
+    cards.push({pic:U[u].pic,u:`1 ${u}`,n:U[u].n,p:U[u].tip,rel,say:`1 ${U[u].n}. ${U[u].tip} ${rel.join('. ')}`});});
+  const pre={h:'A <b>kilo</b> ezret jelent: 1 km = 1000 m. A <b>centi</b>ből 100 darab kell egy méterhez, a <b>milli</b>ből 1000 darab.',t:'A <b>kilo</b> ezret jelent: 1 kg = 1000 g. A <b>deka</b> tízet jelent: 1 dkg = 10 g.',u:'A <b>deci</b>ből 10 darab kell egy literhez, a <b>centi</b>ből 100, a <b>milli</b>ből 1000. A <b>hekto</b> százat jelent: 1 hl = 100 l.'}[cat];
+  cards.push({stairs:true,u:'Az egységlépcső',n:'',p:`Ha lefelé lépsz a lépcsőn, az egység <b>kisebb</b> lesz, ezért <b>több darab</b> kell belőle. Ha felfelé lépsz, kevesebb.`,p2:pre,say:`Az egységlépcső. Ha lefelé lépsz a lépcsőn, az egység kisebb lesz, ezért több darab kell belőle. ${pre}`});
+  return cards;
+}
+function learnV(){
+  const cards=learnCards(view.cat),C=CATS[view.cat];
+  return `<div class="top"><button class="icon-btn" onclick="startAct('learn')">←</button><h2>📖 ${C.n}</h2></div>
+  <div class="carousel" id="car">${cards.map((c,i)=>`<div class="lcard" style="border-top:8px solid ${C.col}"><button class="say" onclick="sayCard(${i})" aria-label="Felolvasás">🔊</button>
+    ${c.stairs?`<div style="margin:14px 0">${stairs(view.cat)}</div>`:pic(c.pic)}
+    <div class="u">${c.u}</div>${c.n?`<div class="n">${c.n}</div>`:''}<p>${c.p}</p>
+    ${c.extraPics?`<div style="display:flex;justify-content:center;gap:12px">${c.extraPics.map(x=>pic(x).replace('class="pic ','style="width:80px;height:80px" class="pic ')).join('')}</div>`:''}
+    ${c.p2?`<p style="color:var(--soft)">${c.p2}</p>`:''}
+    ${c.rel&&c.rel.length?`<div class="rel">${c.rel.map(r=>`<span>${r}</span>`).join('')}</div>`:''}</div>`).join('')}</div>
+  <div class="dots" id="dots">${cards.map((_,i)=>`<i class="${i===0?'on':''}"></i>`).join('')}</div>
+  <div class="navrow"><button onclick="carMove(-1)">← Előző</button><button onclick="carMove(1)">Következő →</button></div>
+  <button class="big-btn" onclick="newRound('unit',['${view.cat}'])">Gyakoroljunk! 🤔</button>`;
+}
+let carIdx=0;
+function initCarousel(){carIdx=0;const c=$('#car');if(!c)return;c.addEventListener('scroll',()=>{const i=Math.round(c.scrollLeft/c.clientWidth);if(i!==carIdx){carIdx=i;document.querySelectorAll('#dots i').forEach((d,j)=>d.className=j===i?'on':'');}},{passive:true});}
+function carMove(d){const c=$('#car');const n=c.children.length;const i=Math.max(0,Math.min(n-1,carIdx+d));c.children[i].scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});}
+function sayCard(i){say(learnCards(view.cat)[i].say,true);}
+
+/* --- Gyakorlás --- */
+function newRound(act,cats){R={act,cats,n:S.set.len,i:0,score:0,res:[],seen:new Set()};view={s:'quiz'};nextQ();}
+function gen(){const g={conv:genConv,cmp:genCmp,unit:genUnit,ruler:genRuler,pay:genPay,count:genCount,build:genBuild,decomp:genDecomp}[R.act];let q;for(let t=0;t<25;t++){q=g(R.cats);if(!R.seen.has(q.key))break;}R.seen.add(q.key);return q;}
+function nextQ(){if(R.i>=R.n){finish();return;}R.q=gen();R.tries=0;R.done=false;R.inp='';R.fb=null;R.wrong=[];R.pay=[];R.bld={1000:0,100:0,10:0,1:0};R.cards={};render();setTimeout(()=>say(R.q.say),250);}
+function quizV(){
+  const q=R.q,C=CATS[q.cat]||{col:'var(--star)'};
+  const prog=[...Array(R.n)].map((_,i)=>`<i class="${i<R.i?(R.res[i]===2?'ok':R.res[i]===1?'half':'no'):i===R.i?'cur':''}"></i>`).join('');
+  const slotCls=R.done?(R.fb&&R.fb.type==='ok'?'ok':'show'):'';
+  const slot=`<span class="slot ${slotCls}" id="slot">${R.done&&R.fb.type==='show'?fmt(q.ans):(R.inp?fmt(+R.inp):'?')}</span>`;
+  let body='';
+  if(q.kind==='conv')body=`<div style="font-size:16px;color:var(--soft)">Váltsd át!</div><div class="qeq">${q.eq.replace('SLOT',slot)}</div>`;
+  if(q.kind==='ruler')body=`<div class="qtext">${q.q}</div><div style="margin:8px -6px 0">${scaleSVG(q,R.done)}</div><div style="font-size:14px;color:var(--soft)">${SC[q.sc].legend}</div><div class="qeq">${q.eq.replace('SLOT',slot)}</div>`;
+  if(q.kind==='unit')body=`${pic(q.pic,'big')}<div class="qtext">${q.q}</div>`;
+  if(q.kind==='pay'){const sum=R.pay.reduce((a,b)=>a+b,0);body=`<div class="qtext">Fizesd ki pontosan!</div><div class="amount">${fmt(q.ans)} Ft</div>
+    <div class="pult">${R.pay.length?R.pay.slice().map((d,i)=>[d,i]).sort((a,b)=>b[0]-a[0]).map(([d,i])=>`<button onclick="payDel(${i})" aria-label="${d} Ft levétele">${moneySVG(d,.72)}</button>`).join(''):'<span class="empty">A pult üres. Koppints lent a pénzre!</span>'}</div>
+    ${R.done||R.showSum?`<div style="margin-top:6px;color:var(--soft)">A pulton: <b>${fmt(sum)} Ft</b></div>`:`<button style="margin-top:6px;color:var(--soft);font-size:14px;text-decoration:underline" onclick="R.showSum=1;render();setTimeout(()=>R.showSum=0,0)">Mennyi van a pulton?</button>`}`;}
+  if(q.kind==='count')body=`<div class="qtext">Mennyi pénz van itt?</div><div class="mrow">${q.pcs.map(d=>moneySVG(d,d>=500?.85:1.15)).join('')}</div><div class="qeq">${q.eq.replace('SLOT',slot)}</div>`;
+  if(q.kind==='build')body=`<div class="qtext">Rakd ki ezt a számot!</div><div class="amount">${fmt(q.ans)}</div>${blocksHtml(R.bld)}`;
+  if(q.kind==='cards')body=`<div class="qtext">Rakd ki kártyákból!</div><div class="bignum">${fmt(q.ans)}</div>${stackHtml(R.cards,true)}`;
+  if(q.kind==='expand')body=`<div class="qtext">Melyik szám ez?</div><div class="qeq">${q.eq.replace('SLOT',slot)}</div>`;
+  if(q.kind==='val')body=`<div class="bignum">${q.num}</div><div class="qtext">${q.q}</div>`;
+  if(q.kind==='read')body=`<div class="qtext">Melyik számot raktuk ki?</div>${blocksHtml(q.cnt)}<div class="qeq">${q.eq.replace('SLOT',slot)}</div>`;
+  if(q.kind==='cmp')body=`<div class="qtext">Melyik a több?</div><div style="font-size:15px;color:var(--soft)">Koppints arra, amelyik több!</div>`;
+  let input='';
+  if(q.input==='num'&&!R.done)input=`<div class="pad">${[1,2,3,4,5,6,7,8,9].map(d=>`<button onclick="key('${d}')">${d}</button>`).join('')}<button class="del" onclick="key('del')">⌫</button><button onclick="key('0')">0</button><button class="go" onclick="key('ok')">✓</button></div>`;
+  if(q.input==='choice')input=`<div class="choices ${q.choices.length===4?'two':''}">${q.choices.map((c,i)=>`<button class="choice ${R.done&&c===q.ans?'ok':R.wrong.includes(c)?'bad':''}" ${R.done||R.wrong.includes(c)?'disabled':''} onclick="choose(${i})">${c}</button>`).join('')}</div>`;
+  if(q.input==='cmp'){const cl=v=>R.done&&q.ans===v?'ok':R.wrong.includes(v)?'bad':'';const dis=v=>R.done||R.wrong.includes(v)?'disabled':'';
+    input=`<div class="choices two"><button class="choice cmpbox ${cl('L')}" ${dis('L')} onclick="choose('L')">${q.L.t}</button><button class="choice cmpbox ${cl('R')}" ${dis('R')} onclick="choose('R')">${q.R.t}</button><button class="choice eq ${cl('E')}" ${dis('E')} onclick="choose('E')">🟰 Egyformák</button></div>`;}
+  if(q.input==='pay'&&!R.done){const ds=denomsOK();input=`<div class="kassza">${ds.filter(d=>d>=500).reverse().map(d=>`<button onclick="payAdd(${d})" aria-label="${d} Ft">${moneySVG(d,1)}</button>`).join('')}</div><div class="kassza coins">${ds.filter(d=>d<500).reverse().map(d=>`<button onclick="payAdd(${d})" aria-label="${d} Ft">${moneySVG(d,1.05)}</button>`).join('')}</div><button class="okbtn" onclick="if(R.pay.length)answer(R.pay.reduce((a,b)=>a+b,0))">Kifizetem ✓</button>`;}
+  if(q.input==='cards'&&!R.done)input=`${q.pl.map(p=>`<div class="crow"><span class="lab" style="color:${PVC[p]}">${PVPL[p]}</span><div class="cgrid">${[1,2,3,4,5,6,7,8,9].map(k=>`<button class="${R.cards[p]===k?'on':''}" style="${R.cards[p]===k?`background:${PVC[p]};border-color:${PVC[p]}`:`color:${PVC[p]}`};${p>=1000?'font-size:10.5px':''}" onclick="cPick(${p},${k})">${k*p}</button>`).join('')}</div></div>`).join('')}<button class="okbtn" onclick="answer(Object.keys(R.cards).reduce((a,p)=>a+R.cards[p]*p,0))">Kész ✓</button>`;
+  if(q.input==='build'&&!R.done)input=`<div class="bctl">${[1000,100,10,1].filter(p=>p<=q.ans).map(p=>`<div><b style="color:${PVC[p]}">${BLKN[p]}</b><span style="font-size:12px;color:var(--soft)">${PVN[p]}</span><div class="n" style="color:${PVC[p]}">${R.bld[p]}</div><button onclick="bAdd(${p},-1)">−</button><button onclick="bAdd(${p},1)">+</button></div>`).join('')}</div><button class="okbtn" onclick="answer(R.bld[1000]*1000+R.bld[100]*100+R.bld[10]*10+R.bld[1])">Kész ✓</button>`;
+  const fb=R.fb?`<div class="fb ${R.fb.type} pop"><div class="head">${R.fb.head}</div>${R.fb.msg}</div>`:'';
+  const helpHtml=(R.tries>0||R.done)?q.help(R.done):'';
+  const help=helpHtml?`<div class="help">${helpHtml}</div>`:'';
+  return `<div class="top"><button class="icon-btn" onclick="go('home')" aria-label="Kilépés">✕</button><div class="progress">${prog}</div><span class="pill">⭐ ${S.stars}</span></div>
+  <div class="qcard ${R.anim||''}" style="border-top:8px solid ${C.col}"><button class="say" onclick="say(R.q.say,true)" aria-label="Felolvasás">🔊</button>${body}</div>
+  ${input}${fb}${help}${R.done?`<button class="next" onclick="R.i++;nextQ()">${R.i+1>=R.n?'Eredmény 🏁':'Tovább →'}</button>`:''}`;
+}
+function key(k){if(R.done)return;if(k==='del')R.inp=R.inp.slice(0,-1);else if(k==='ok'){if(R.inp!=='')answer(+R.inp);return;}else if(R.inp.length<6&&!(R.inp===''&&k==='0'))R.inp+=k;
+  const s=$('#slot');if(s){s.textContent=R.inp?fmt(+R.inp):'?';s.className='slot';}}
+function choose(v){const q=R.q;if(q.input==='choice')v=q.choices[v];answer(v);}
+function answer(v){
+  const q=R.q;R.anim='';
+  if(v===q.ans){R.done=true;const first=R.tries===0;if(first){R.score++;S.stars++;}R.res[R.i]=first?2:1;
+    const pr=pick(PRAISE).replace('!','');R.fb={type:'ok',head:first?`${pr}, jutalmad 1 csillag! ⭐`:pr+'!',msg:(first?'':'Második próbálkozásra sikerült! ')+(q.okMsg?q.okMsg():'')};save();if(first)confetti();say(first?`${pr}, jutalmad 1 csillag!`:`${pr}! Második próbálkozásra sikerült!`);}
+  else{R.tries++;if(q.input==='choice'||q.input==='cmp')R.wrong.push(v);
+    if(R.tries<2){R.fb={type:'try',head:'Nem baj, próbáld újra! 💪',msg:q.hint(v)};R.inp='';R.anim='shake';say('Próbáld újra! '+q.hint(v));}
+    else{R.done=true;R.res[R.i]=0;const a=q.kind==='pay'||q.kind==='count'?`${fmt(q.ans)} Ft`:['build','read','cards','expand'].includes(q.kind)?fmt(q.ans):q.kind==='conv'||q.kind==='ruler'?`${fmt(q.ans)}${q.kind==='ruler'?' '+q.u:''}`:q.kind==='cmp'?(q.ans==='E'?'Egyformák':q.ans==='L'?q.L.t:q.R.t):q.ans;
+      R.fb={type:'show',head:'Nézzük meg együtt! 👀',msg:`A helyes válasz: <b>${a}</b>`};}}
+  render();
+}
+function finish(){
+  const best=S.best[R.act];if(best==null||R.score>best)S.best[R.act]=R.score;save();view={s:'result'};render();if(R.score>=R.n*.7)confetti();
+  say(R.score===R.n?'Hibátlan! Minden kérdésre elsőre jól válaszoltál!':`${R.score} csillagot szereztél!`);
+}
+function resultV(){
+  const p=R.score/R.n,msg=p===1?'Hibátlan! Mértékegység-bajnok vagy! 🏆':p>=.7?'Nagyon ügyes voltál!':p>=.4?'Szép munka! Gyakoroljunk még egy kicsit!':'Jó kezdés! Nézd meg az „Ismerd meg!” kártyákat, aztán próbáld újra!';
+  return `<div class="result"><div style="font-size:60px">${p===1?'🏆':p>=.7?'🎉':'💪'}</div><h2>${R.score} / ${R.n}</h2>
+  <div class="stars">${'⭐'.repeat(R.score)}${'☆'.repeat(R.n-R.score)}</div><p>${msg}</p>
+  <button class="big-btn" onclick="newRound('${R.act}',${JSON.stringify(R.cats).replace(/"/g,"'")})">Újra! 🔁</button>
+  <button class="big-btn ghost" onclick="go('home')">Főmenü</button></div>`;
+}
+
+/* --- Beállítások --- */
+function setV(){
+  const st=S.set;const tog=(k,l)=>`<div class="tog"><span>${l}</span><button class="${st[k]?'on':''}" onclick="S.set.${k}=!S.set.${k};save();render()"></button></div>`;
+  return `<div class="top"><button class="icon-btn" onclick="go('home')">←</button><h2>Szülőknek ⚙️</h2></div>
+  <div class="set"><h3>Mértékegységek</h3><p>Csak a bekapcsolt egységek szerepelnek a feladatokban. 2. osztályban általában m, cm, kg, l, dl; 3. osztályban a többi is.</p>
+  ${['h','t','u'].map(c=>`<div class="ubtns">${allUnitsOf(c).slice().reverse().map(u=>`<button class="${on(u)?'on':''}" onclick="S.set.units.${u}=S.set.units.${u}?0:1;save();render()">${u}</button>`).join('')}</div>`).join('')}</div>
+  <div class="set"><h3>Számkör</h3><p>A legnagyobb szám, ami egy feladatban előfordulhat.</p><div class="seg">${[100,1000,10000].map(v=>`<button class="${st.limit===v?'on':''}" onclick="S.set.limit=${v};save();render()">${fmt(v)}-ig</button>`).join('')}</div></div>
+  <div class="set"><h3>Dolgozat hossza</h3><div class="seg">${[['short','Rövid'],['normal','Normál'],['long','Hosszú']].map(([k,l])=>`<button class="${(st.tlen||'normal')===k?'on':''}" onclick="S.set.tlen='${k}';save();render()">${l}</button>`).join('')}</div></div>
+  <div class="set"><h3>Kérdések egy körben</h3><div class="seg">${[5,8,10,15].map(v=>`<button class="${st.len===v?'on':''}" onclick="S.set.len=${v};save();render()">${v}</button>`).join('')}</div></div>
+  <div class="set"><h3>Nehézség</h3>
+  ${tog('compound','Összetett váltás (pl. 2 m 35 cm = ? cm)')}
+  ${tog('shift','Mérés: a tárgy nem mindig a 0-nál kezdődik')}
+  </div>
+  <div class="set"><h3>Felolvasás 🔊</h3>${tog('voice','Kérdések automatikus felolvasása')}
+  <p>Hang:</p><div class="ubtns"><button class="${useBerta()?'on':''}" onclick="S.set.voiceName='berta';save();render();say('Szia! Milyen hosszú egy busz? 12 méter.',true)">Berta (beépített)</button>${voices.map(v=>`<button class="${!useBerta()&&curVoice()===v?'on':''}" onclick='S.set.voiceName=${JSON.stringify(v.name).replace(/'/g,"&#39;")};save();render();say("Szia! Milyen hosszú egy busz? 12 méter.",true)'>${v.name.replace(/Microsoft /,'').replace(/ - Hungarian.*| \(Hungary\)/,'')}</button>`).join('')}</div>
+  <p id="bstat">${bertaStatus()}</p>
+  ${voices.length?'':`<p>A készülék saját magyar hangját nem találtam. Ez nem baj, Berta enélkül is működik.</p>`}
+  <p>Sebesség:</p><div class="seg">${[[0.8,'Lassabb'],[0.95,'Normál'],[1.08,'Gyorsabb']].map(([r,l])=>`<button class="${Math.abs((S.set.rate||0.95)-r)<.01?'on':''}" onclick="S.set.rate=${r};save();render();say('Hány centiméter egy méter?',true)">${l}</button>`).join('')}</div>
+  <button class="big-btn ghost" onclick="say('3 méter, az hány centiméter? Ügyes vagy!',true)">▶ Próba</button></div>
+  <div class="set"><h3>Csillagok: ${S.stars} ⭐</h3><button class="big-btn ghost" onclick="askReset()">Csillagok nullázása</button></div>`;
+}
+function askReset(){const m=document.createElement('div');m.className='modal';m.innerHTML=`<div><p>Biztosan nullázod a csillagokat és a legjobb eredményeket?</p><div class="row"><button onclick="this.closest('.modal').remove()">Mégse</button><button class="dang" onclick="S.stars=0;S.best={};save();this.closest('.modal').remove();render()">Nullázás</button></div></div>`;document.body.appendChild(m);}
+
+document.addEventListener('keydown',e=>{if(view.s!=='quiz'||!R||R.done){if(view.s==='quiz'&&R&&R.done&&e.key==='Enter'){R.i++;nextQ();}return;}
+  if(R.q.input!=='num')return;if(/^[0-9]$/.test(e.key))key(e.key);else if(e.key==='Backspace')key('del');else if(e.key==='Enter')key('ok');});
+render();
+setTimeout(startBerta,1500);
+if('serviceWorker' in navigator&&location.protocol==='https:'&&!/claude/.test(location.hostname)){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+</script>
+</body>
+</html>
