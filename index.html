@@ -209,7 +209,7 @@ async function bertaLoad(base='tts/',onProgress=()=>{}){
       if(m.t==='prog'){BERTA.pct=m.p;onProgress(m.p);}
       else if(m.t==='ready'){BERTA.sr=m.sr;BERTA.state='ready';BERTA.pct=100;onProgress(100);done();}
       else if(m.t==='err'){BERTA.state='error';BERTA.err=m.e;onProgress(0);done();}
-      else if(m.t==='pcm'){const j=BERTA.jobs.get(m.id);if(j){BERTA.jobs.delete(m.id);m.err?j.no(new Error(m.err)):j.ok(m.pcm);}}};
+      else if(m.t==='pcm'){if(m.pcm&&m.ms)bertaSpeed(m.ms,m.pcm.length/BERTA.sr);const j=BERTA.jobs.get(m.id);if(j){BERTA.jobs.delete(m.id);m.err?j.no(new Error(m.err)):j.ok(m.pcm);}}};
     w.onerror=e=>{BERTA.state='error';BERTA.err=(e&&e.message)||'worker';onProgress(0);done();};
     w.postMessage({t:'load',base:new URL(base,location.href).href});
   }catch(e){BERTA.state='error';BERTA.err=String(e&&e.message||e);onProgress(0);done();}});
@@ -371,10 +371,10 @@ const STEP={10:'tízesével',100:'százasával',1000:'ezresével',10000:'tízezr
 const PRAISE=['Szuper!','Ügyes vagy!','Pontosan!','Ez az!','Hibátlan!','Nagyon jó!','Telitalálat!'];
 
 /* ============ ÁLLAPOT ============ */
-const DEF={units:{mm:1,cm:1,dm:1,m:1,km:1,g:1,dkg:1,kg:1,t:1,ml:1,cl:1,dl:1,l:1,hl:1},limit:1000,compound:false,shift:true,voice:true,len:8,voiceName:'',rate:0.95};
+const DEF={units:{mm:1,cm:1,dm:1,m:1,km:1,g:1,dkg:1,kg:1,t:1,ml:1,cl:1,dl:1,l:1,hl:1},limit:1000,compound:true,shift:true,voice:true,len:8,voiceName:'',rate:0.95};
 let S={set:JSON.parse(JSON.stringify(DEF)),stars:0,best:{}};
 const KEY='mertekegyseg-kaland-v1';
-try{const s=JSON.parse(localStorage.getItem(KEY)||'null'); if(s){S.stars=s.stars||0;S.best=s.best||{};S.set=Object.assign(S.set,s.set||{});S.set.units=Object.assign({},DEF.units,(s.set||{}).units||{});if(!('t' in ((s.set||{}).units||{})))S.set.units.hl=1;S.name=s.name||'';}}catch(e){}
+try{const s=JSON.parse(localStorage.getItem(KEY)||'null'); if(s){S.stars=s.stars||0;S.best=s.best||{};S.set=Object.assign(S.set,s.set||{});S.set.units=Object.assign({},DEF.units,(s.set||{}).units||{});if(!('t' in ((s.set||{}).units||{})))S.set.units.hl=1;S.name=s.name||'';if(!(s.set||{}).v2){S.set.compound=true;S.set.v2=1;}}}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 let view={s:'home'}; let R=null;
 
@@ -398,8 +398,15 @@ if('speechSynthesis' in window){loadVoices();speechSynthesis.onvoiceschanged=loa
 const WB='(?![0-9A-Za-zÁÉÍÓÖŐÚÜŰáéíóöőúüű])',NB='(?<![0-9A-Za-zÁÉÍÓÖŐÚÜŰáéíóöőúüű])';
 function spoken(t){return t.replace(/(\d+)\s*Ft-ot/g,'$1 forintot').replace(/(\d+)\s*Ft/g,'$1 forint').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/gu,'').replace(new RegExp('(\\d+)\\s*(mm|cm|dm|km|m|dkg|kg|g|t|ml|cl|dl|hl|l)'+WB,'g'),(_,n,u)=>n+' '+U[u].n).replace(new RegExp(NB+'(mm|cm|dm|km|dkg|kg|ml|cl|dl|hl)'+WB,'g'),u=>U[u].n).replace(/,? az hány/g,', az hány').replace(/\? /g,'?  ').replace(/=/g,' egyenlő ').replace(/×/g,' szorozva ').replace(/<[^>]+>/g,' ');}
 function useBerta(){return !S.set.voiceName||S.set.voiceName==='berta';}
-function bertaStatus(){if(!useBerta())return '';return BERTA.state==='ready'?'✔️ Berta hangja betöltve.':BERTA.state==='loading'?`⏳ Berta hangjának letöltése: ${BERTA.pct}% (egyszer kell, kb. 40 MB; addig a készülék hangja olvas)`:BERTA.state==='error'?`⚠️ Berta hangját nem sikerült betölteni (${BERTA.err}). Addig a készülék hangja olvas.`:'Berta hangja az első felolvasáskor töltődik le (egyszer, kb. 40 MB).';}
+function bertaStatus(){if(!useBerta())return S.set.autoSlow?'ℹ️ Ezen a telefonon Berta hangja lassan készült el, ezért a telefon saját hangjára váltottam. Ha mégis Bertát szeretnéd, válaszd ki fent.':'';return BERTA.state==='ready'?'✔️ Berta hangja betöltve.':BERTA.state==='loading'?`⏳ Berta hangjának letöltése: ${BERTA.pct}% (egyszer kell, kb. 40 MB; addig a készülék hangja olvas)`:BERTA.state==='error'?`⚠️ Berta hangját nem sikerült betölteni (${BERTA.err}). Addig a készülék hangja olvas.`:'Berta hangja az első felolvasáskor töltődik le (egyszer, kb. 40 MB).';}
 function bertaProg(){const e=document.getElementById('bstat');if(e)e.textContent=bertaStatus();const h=document.getElementById('hstat');if(h)h.textContent=BERTA.state==='loading'?`🔊 ${BERTA.pct}%`:'';}
+/* Lassú telefon felismerése: ha Berta hangjának elkészítése lassabb, mint a felolvasás, átvált a telefon hangjára */
+BERTA.meas=[];
+function bertaSpeed(ms,dur){if(!dur||BERTA.measDone||S.set.voiceChosen||!useBerta())return;BERTA.meas.push(ms/1000/dur);
+  const m=BERTA.meas.slice(1);if(m.length<2)return;
+  const slow=m.filter(r=>r>1.0).length;
+  if(slow>=2&&voices.length){S.set.voiceName=voices[0].name;S.set.autoSlow=1;save();try{BERTA.w&&BERTA.w.terminate();}catch(e){}BERTA.w=null;BERTA.state='off';BERTA.cache.clear();bertaProg();if(view.s==='set')render();}
+  else if(m.length>=4)BERTA.measDone=true;}
 function startBerta(){if(useBerta()&&BERTA.state==='off')bertaLoad('tts/',bertaProg).then(bertaProg);}
 function deviceSay(txt){if(!('speechSynthesis' in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt);u.lang='hu-HU';const cv=curVoice();if(cv)u.voice=cv;u.rate=S.set.rate||0.95;u.pitch=1.05;speechSynthesis.speak(u);}catch(e){}}
 function say(t,force){if(!(S.set.voice||force))return;const txt=spoken(t).replace(/\s+/g,' ').trim();if(!txt)return;
@@ -1047,7 +1054,7 @@ function setV(){
   ${tog('shift','Mérés: a tárgy nem mindig a 0-nál kezdődik')}
   </div>
   <div class="set"><h3>Felolvasás 🔊</h3>${tog('voice','Kérdések automatikus felolvasása')}
-  <p>Hang:</p><div class="ubtns"><button class="${useBerta()?'on':''}" onclick="S.set.voiceName='berta';save();render();say('Szia! Milyen hosszú egy busz? 12 méter.',true)">Berta (beépített)</button>${voices.map(v=>`<button class="${!useBerta()&&curVoice()===v?'on':''}" onclick='S.set.voiceName=${JSON.stringify(v.name).replace(/'/g,"&#39;")};save();render();say("Szia! Milyen hosszú egy busz? 12 méter.",true)'>${v.name.replace(/Microsoft /,'').replace(/ - Hungarian.*| \(Hungary\)/,'')}</button>`).join('')}</div>
+  <p>Hang:</p><div class="ubtns"><button class="${useBerta()?'on':''}" onclick="S.set.voiceName='berta';S.set.voiceChosen=1;S.set.autoSlow=0;save();startBerta();render();say('Szia! Milyen hosszú egy busz? 12 méter.',true)">Berta (beépített)</button>${voices.map(v=>`<button class="${!useBerta()&&curVoice()===v?'on':''}" onclick='S.set.voiceName=${JSON.stringify(v.name).replace(/'/g,"&#39;")};S.set.voiceChosen=1;S.set.autoSlow=0;save();render();say("Szia! Milyen hosszú egy busz? 12 méter.",true)'>${v.name.replace(/Microsoft /,'').replace(/ - Hungarian.*| \(Hungary\)/,'')}</button>`).join('')}</div>
   <p id="bstat">${bertaStatus()}</p>
   ${voices.length?'':`<p>A készülék saját magyar hangját nem találtam. Ez nem baj, Berta enélkül is működik.</p>`}
   <p>Sebesség:</p><div class="seg">${[[0.8,'Lassabb'],[0.95,'Normál'],[1.08,'Gyorsabb']].map(([r,l])=>`<button class="${Math.abs((S.set.rate||0.95)-r)<.01?'on':''}" onclick="S.set.rate=${r};save();render();say('Hány centiméter egy méter?',true)">${l}</button>`).join('')}</div>
